@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Basic Meta Tags -->
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="language" content="English" />
+    <meta name="robots" content="index, follow" />
+    <meta name="google-adsense-account" content="ca-pub-1414579516523448">
+    <!-- Primary SEO & Branding -->
+    <title>Best Private Search Engine 2025 - Sodi Search Without Tracking</title>
+    <meta
+      name="description"
+      content="Discover the best private search engine that doesn't track you. Sodi offers secure, anonymous search with no ads - the perfect Google alternative for privacy-focused users."
+    />
+    <meta name="keywords" content="private search engine, best search engine, search without tracking, Google alternative, anonymous search, secure search engine, privacy search engine, no tracking search engine" />
+    <link rel="canonical" href="https://sodeom.com/" />
+    <meta name="msvalidate.01" content="C70C97DAFD1D3C1E6D60C9404C2CC39C" />
+    <meta name="yandex-verification" content="3030068a2f67a912" />
+
+    <!-- Favicon & Web App Manifest -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content="https://sodeom.com/" />
+    <meta property="og:title" content="Best Private Search Engine - Sodi Search Without Tracking" />
+    <meta property="og:description" content="The most private search engine that protects your data. No tracking, no ads, just secure anonymous searching." />
+    <meta property="og:image" content="https://sodeom.com/static/social-preview.png" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@sodeom" />
+    <meta name="twitter:title" content="Best Private Search Engine - No Tracking" />
+    <meta name="twitter:description" content="Secure search engine that doesn't track you. Perfect Google alternative for privacy protection." />
+    <meta name="twitter:image" content="https://sodeom.com/static/social-preview.png" />
+
+    <!-- Schema Markup -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Sodi Search Engine",
+        "alternateName": "Sodeom",
+        "description": "Private search engine that doesn't track users",
+        "url": "https://sodeom.com/",
+        "logo": "https://sodeom.com/static/logo.png",
+        "foundingDate": "2025",
+        "keywords": "private search engine, secure search, anonymous search, Google alternative",
+        "sameAs": ["https://twitter.com/sodeom", "https://github.com/sodium520"]
+      }
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Sodi Search Engine",
+        "description": "The best private search engine for secure, anonymous web searching",
+        "url": "https://sodeom.com/",
+        "keywords": "private search engine, secure search, anonymous search",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://sodeom.com/?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is the most private search engine?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sodi Search Engine is designed as a private search engine that doesn't track users, store personal data, or show targeted ads."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is Sodi a good Google alternative?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, Sodi Search provides fast, private search results without the tracking and data collection associated with Google."
+            }
+          }
+        ]
+      }
+    </script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+
+  <body>
+    <!-- Sticky Header -->
+    <header class="search-header">
+      <div class="container">
+        <img src="/favicon.ico" alt="Sodi Logo" width="48" height="48" />
+        <h1>Sodi - Private Search Engine</h1>
+        <p>The best search engine that doesn't track you</p>
+
+        <nav>
+          <a href="https://mail.sodeom.com/">Private Mail</a> |
+          <a href="https://sodeom.com/">Secure Search</a>
+        </nav>
+
+        <form class="search-form" method="GET" role="search">
+          <input type="text" name="q" placeholder="Search privately..." value="{{ query }}" required />
+          <button class="btn-primary" type="submit">Search Privately</button>
+        </form>
+
+        {% if query %}
+        <nav class="search-nav">
+          <a href="/?q={{ query }}">Web Results</a> |
+          <a href="/images?q={{ query }}">Images</a> |
+          <a href="/wiki/{{ query }}">Details</a> |
+          {% if has_prev %}
+          <a href="{{ url_for('index', q=query, page=page-1, b=b) }}">Previous</a> |
+          {% endif %}
+          {% if has_next %}
+          <a href="{{ url_for('index', q=query, page=page+1, b=b) }}">Next</a>
+          {% endif %}
+        </nav>
+        {% endif %}
+      </div>
+    </header>
+
+    <main class="container">
+      {% if query %}
+      <ul class="results-list" role="list" aria-label="Search results">
+        {% if results %}
+          {% for result in results %}
+          <li role="listitem">
+            <h5>
+              <a href="{{ result.link }}?utm_source=sodeom.com" rel="noopener noreferrer" aria-label="Open search result: {{ result.title }}">
+                {{ result.title }}
+              </a>
+            </h5>
+            <small>{{ result.link }}</small><br>
+            <small class="description-small">{{ result.description }}</small>
+          </li>
+          {% endfor %}
+        {% else %}
+          <li>No results found for "{{ query }}". Try different keywords for better private search results.</li>
+        {% endif %}
+      </ul>
+      {% endif %}
+
+      <section class="hero-section">
+        <h2>Search Without Being Tracked</h2>
+        <p>Experience the most private search engine that protects your data and respects your privacy.</p>
+      </section>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <h3>🔒 Complete Privacy</h3>
+          <p>We never track, store, or share your search data. Your searches remain completely anonymous and private.</p>
+        </div>
+        <div class="feature-card">
+          <h3>🚫 No Ads or Tracking</h3>
+          <p>Enjoy clean search results without targeted ads, tracking pixels, or data harvesting algorithms.</p>
+        </div>
+        <div class="feature-card">
+          <h3>⚡ Fast & Reliable</h3>
+          <p>Get instant search results from multiple sources while maintaining complete privacy protection.</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <nav>
+        <a href="/privacy-policy">Privacy Policy</a>
+        <a href="/terms">Terms of Service</a>
+        <a href="/contact">Contact Us</a>
+        <a href="/about">About Private Search</a>
+        <a href="/services">All Services</a>
+        <a href="/urls">Urls</a>
+      </nav>
+      <p>© 2025 Sodi Search Engine. The most private search engine for secure, anonymous searching.</p>
+    </footer>
+  </body>
+</html>

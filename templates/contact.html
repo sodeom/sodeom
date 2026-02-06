@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Sodi - Innovating the Future{% endblock %}
+
+{% block content %}
+<!-- Contact Section -->
+<section class="contact">
+    <div class="container">
+        <h2>Contact Us</h2>
+        <p>If you have any questions, feedback, or issues, feel free to reach out to us. We'd love to hear from you!</p>
+
+        <form action="https://formspree.io/f/xwpvvbep" method="POST" class="contact-form">
+            <div class="form-group">
+                <label for="name">Your Name:</label>
+                <input type="text" id="name" name="name" placeholder="Enter your name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Your Email:</label>
+                <input type="email" id="email" name="_replyto" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+                <label for="message">Your Message:</label>
+                <textarea id="message" name="message" rows="5" placeholder="Enter your message" required></textarea>
+            </div>
+            <button type="submit" class="btn play-btn">Send Message</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

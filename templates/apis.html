@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Sodeom API Documentation — Search, Images, AI Routes & Placeholder Service</title>
+  <meta name="description" content="Comprehensive API reference for the Sodeom Flask app: /api/search, /ai, /placeholder, /images and all public routes. Usage examples, query parameters, responses, error codes, security notes and SEO-optimized guide.">
+  <meta name="keywords" content="Sodeom API, search API, images API, placeholder image, DuckDuckGo scrape, Bing images, Google images, Brave images, Flask API, OpenAI on GitHub Models">
+  <link rel="canonical" href="https://sodeom.com/docs/api">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Sodeom API Documentation — Search, Images, AI & Placeholder" />
+  <meta property="og:description" content="Detailed reference for developers using Sodeom's APIs: search endpoints, images fallback, AI chat integration and static routes." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sodeom.com/docs/api" />
+
+     <link rel="stylesheet" href="static/apistyle.css" />
+
+  <!-- Twitter card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Sodeom API Documentation" />
+
+  <!-- Structured data (JSON-LD) for SEO, describes the API documentation -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Sodeom API Documentation — Search, Images, AI & Placeholder",
+    "description": "Detailed reference for Sodeom's Flask APIs, including /api/search, /ai, /placeholder, /images and static site routes.",
+    "mainEntityOfPage": {"@type":"WebPage","@id":"https://sodeom.com/docs/api"},
+    "publisher": {"@type":"Organization","name":"Sodeom","url":"https://sodeom.com"}
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <p class="badge">Sodeom • API Reference</p>
+    <h1>Sodeom API Documentation</h1>
+    <p class="lead">This page explains every public endpoint in the Sodeom Flask app (search, images, placeholder, AI integration and site routes). Example requests, query parameters, responses, error handling, and security guidance are included.</p>
+  </header>
+
+  <main>
+    <nav class="toc" aria-label="Table of contents">
+      <strong>Contents</strong>
+      <ol>
+        <li><a href="#overview">Overview & architecture</a></li>
+        <li><a href="#auth">Authentication & rate-limiting notes</a></li>
+        <li><a href="#endpoints">Endpoints reference</a>
+          <ol>
+            <li><a href="#root">/ (root HTML search)</a></li>
+            <li><a href="#api-search">/api/search</a></li>
+            <li><a href="#ai-endpoint">/ai</a></li>
+            <li><a href="#images-endpoint">/images</a></li>
+            <li><a href="#placeholder-endpoints">/placeholder & /placeholder/url</a></li>
+            <li><a href="#misc-routes">Other public routes</a></li>
+          </ol>
+        </li>
+        <li><a href="#image-sources">Image sourcing & fallback strategy</a></li>
+        <li><a href="#implementation-details">Implementation details & helper functions</a></li>
+        <li><a href="#errors">Errors & common failure modes</a></li>
+        <li><a href="#security">Security & hardening recommendations</a></li>
+        <li><a href="#seo">SEO & content best practices</a></li>
+        <li><a href="#appendix">Appendix — full route list and sample responses</a></li>
+      </ol>
+    </nav>
+
+    <section id="overview">
+      <h2>Overview & architecture</h2>
+      <p>This Flask application provides a lightweight search front-end, an images service with multi-engine fallback, a placeholder image generator (fetch + cache), and an AI chat proxy that calls an OpenAI-compatible inference endpoint hosted by GitHub Models.</p>
+      <p>Primary components:</p>
+      <ul>
+        <li><strong>Routes:</strong> HTML pages (index, images, placeholder) and JSON APIs (/api/search, /ai).</li>
+        <li><strong>Image scrapers:</strong> DuckDuckGo, Bing, Google, Brave.</li>
+        <li><strong>Cache / storage:</strong> local filesystem for downloaded placeholders (configurable directory).</li>
+        <li><strong>AI:</strong> `openai.OpenAI` client configured to use a GitHub Models inference endpoint.</li>
+      </ul>
+    </section>
+
+    <section id="auth">
+      <h2>Authentication & rate-limiting notes</h2>
+      <p>The application as provided uses a plain GitHub PAT stored in environment variables (e.g. <code>GITHUB_TOKEN</code>). <strong>Important:</strong> never commit secrets to source control. For production:</p>
+      <ul>
+        <li>Use a secrets manager (Vault, AWS Secrets Manager, Cloudflare KV with encryption).</li>
+        <li>Move rate-limiting and authentication to a reverse proxy (Cloudflare or Nginx with limiting rules) or implement Flask-Limiter.</li>
+        <li>Consider adding an API key layer for /api/search and /ai to avoid abuse.</li>
+      </ul>
+    </section>
+
+    <section id="endpoints">
+      <h2>Endpoints reference</h2>
+
+      <article id="root">
+        <h3>/ — Search page (HTML)</h3>
+        <p><strong>Method:</strong> <code>GET</code></p>
+        <p>Query parameters:</p>
+        <table>
+          <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>q</code></td><td>string</td><td>""</td><td>Search query text. Rendered in index.html and used by <code>main(q, page)</code>.</td></tr>
+            <tr><td><code>page</code></td><td>integer</td><td>1</td><td>Pagination page for the search results (validated to be >=1).</td></tr>
+            <tr><td><code>b</code></td><td>binary string</td><td>""</td><td>Optional: a UTF-8 text encoded as binary via <code>utf8_string_to_binary</code>. If present and <code>q</code> is empty, the app decodes <code>b</code> to a query and redirects. If <code>q</code> present and <code>b</code> empty, it encodes <code>q</code> to binary and redirects. This is a UX convenience for copy-pasting binary values.</td></tr>
+          </tbody>
+        </table>
+
+        <p>Behavior:</p>
+        <ol>
+          <li>If <code>q</code> is provided and <code>b</code> is empty the app encodes <code>q</code> and redirects to the same route with <code>b</code> set.</li>
+          <li>If <code>b</code> provided and <code>q</code> empty the app decodes <code>b</code> back to text and redirects.</li>
+          <li>If <code>q</code> present: it calls <code>main(q, page)</code> (external module import) to obtain a list of results and renders <code>index.html</code>.</li>
+        </ol>
+
+        <p><strong>Example (human):</strong></p>
+        <pre class="example">GET /?q=python+flask&page=1</pre>
+      </article>
+
+      <article id="api-search">
+        <h3>/api/search — JSON Search API</h3>
+        <p><strong>Method:</strong> <code>GET</code></p>
+        <p>This route returns JSON-formatted search results and a small pagination block.</p>
+
+        <p>Request parameters:</p>
+        <table>
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>q</code></td><td>string</td><td>yes</td><td>Search query. If missing, returns HTTP 400.</td></tr>
+            <tr><td><code>page</code></td><td>integer</td><td>no</td><td>Page number, defaults to 1. Minimum 1.</td></tr>
+          </tbody>
+        </table>
+
+        <p>Successful response (HTTP 200):</p>
+        <pre>{
+  "results": [ /* array returned from main(q,page) */ ],
+  "query": "...",
+  "page": 1,
+  "has_next": true | false,
+  "has_prev": true | false,
+  "total_results": 10
+}</pre>
+
+        <p>Error responses:</p>
+        <ul>
+          <li><code>400</code> — Missing <code>q</code> parameter: <code>{"error":"Missing query parameter 'q'"}</code></li>
+          <li><code>500</code> — Internal errors propagated from <code>main()</code>.</li>
+        </ul>
+
+        <p>Example (curl):</p>
+        <pre class="example">curl "https://sodeom.com/api/search?q=flask+scrape&page=1"
+</pre>
+      </article>
+
+      <article id="ai-endpoint">
+        <h3>/ai — AI Chat Proxy</h3>
+        <p><strong>Methods:</strong> <code>GET</code>, <code>POST</code></p>
+        <p>Purpose: a thin proxy to an OpenAI-compatible chat completion API (configured to use GitHub Models endpoint via <code>OpenAI(base_url=GITHUB_ENDPOINT)</code>).</p>
+
+        <p>Parameters & body:</p>
+        <ul>
+          <li><code>query</code> (query string) — the user prompt (required when missing a JSON body with messages).</li>
+          <li>POST body (JSON, optional) — used to pass model, messages, temperature, etc. If <code>messages</code> not provided, the endpoint will build a default <code>messages</code> array with a system message and the <code>query</code> as the user message.</li>
+        </ul>
+
+        <p>Important notes:</p>
+        <ul>
+          <li>The server uses <code>DEFAULT_MODEL</code> (openai/gpt-4.1-mini) unless overridden in the JSON body.</li>
+          <li>Request flow: constructs or uses provided <code>messages</code> → calls <code>client.chat.completions.create(**other_params)</code> → returns <code>{"answer": <content>}</code>.</li>
+        </ul>
+
+        <p>Responses:</p>
+        <pre class="example">// Success (200)
+{ "answer": "...generated text..." }
+
+// Error (400)
+{ "error": "No query provided" }
+
+// Error (500)
+{ "error": "<exception message>" }
+</pre>
+
+        <p>Example (curl):</p>
+        <pre class="example">curl -G "https://sodeom.com/ai" --data-urlencode "query=Explain+Flask+blueprints"
+
+# Or with JSON body
+curl -X POST "https://sodeom.com/ai?query=hi" -H "Content-Type: application/json" -d '{"model":"openai/gpt-4.1-mini","messages":[{"role":"user","content":"Say hi"}]}'
+</pre>
+
+        <p><strong>Security & cost:</strong> Be aware that proxied requests consume the configured upstream quota (GitHub Models). Log and rate-limit this endpoint in production.</p>
+      </article>
+
+      <article id="images-endpoint">
+        <h3>/images — Images page (HTML)</h3>
+        <p><strong>Method:</strong> <code>GET</code></p>
+        <p>Parameters:</p>
+        <table>
+          <thead><tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>q</code></td><td>string</td><td>no</td><td>Search query to fetch images from multiple engines.</td></tr>
+            <tr><td><code>page</code></td><td>integer</td><td>no</td><td>Pagination page number (>=1).</td></tr>
+          </tbody>
+        </table>
+
+        <p>Behavior: If <code>q</code> is provided, <code>fetch_images_with_fallback(q,page)</code> is called and results rendered in <code>images.html</code>. The fallback sequence is: DuckDuckGo → Bing → Google → Brave.</p>
+
+        <p>Example:</p>
+        <pre class="example">GET /images?q=kitten&page=1</pre>
+      </article>
+
+      <article id="placeholder-endpoints">
+        <h3>/placeholder &amp; /placeholder/url — Downloadable placeholder images</h3>
+        <p><strong>Method:</strong> <code>GET</code></p>
+
+        <p>Two endpoints are provided:</p>
+        <ul>
+          <li><code>/placeholder?q=&lt;query&gt;&page=&lt;n&gt;</code> — returns a binary image file (downloaded and cached locally). If the app cannot fetch any image for the query, it serves a local fallback at <code>static/not-found.png</code>.</li>
+          <li><code>/placeholder/url?q=&lt;query&gt;&page=&lt;n&gt;</code> — returns the first candidate image URL (string) or the fallback path if none found.</li>
+        </ul>
+
+        <p>Flow (for /placeholder):</p>
+        <ol>
+          <li>Call <code>fetch_images_with_fallback(q,page)</code> to get candidate image URLs.</li>
+          <li>Loop through candidates and call <code>install_image(url)</code> which downloads the image and saves it to <code>placeholders/</code> using a SHA1 hash filename.</li>
+          <li>If a valid image is downloaded, return it with the correct MIME type. If none succeeded, return the built-in fallback PNG.</li>
+        </ol>
+
+        <p>Example:</p>
+        <pre class="example">GET /placeholder?q=puppy&page=1
+# Downloads a cached image and returns a binary response</pre>
+
+        <p>Notes:</p>
+        <ul>
+          <li>The <code>install_image</code> function checks the upstream response <code>Content-Type</code> and only saves image/* responses.</li>
+          <li>Images are stored in <code>placeholders/</code> by SHA1(url). Existing files are reused to avoid re-downloading.</li>
+        </ul>
+      </article>
+
+      <article id="misc-routes">
+        <h3>Other public routes</h3>
+        <p>The application exposes many static and informational pages. They return HTML server-rendered templates or static files:</p>
+        <ul>
+          <li><code>/services</code>, <code>/services/ai</code>, <code>/services/software</code>, <code>/services/webs</code>, <code>/services/projects</code> — service pages</li>
+          <li><code>/about</code>, <code>/contact</code>, <code>/faq</code>, <code>/terms</code>, <code>/privacy-policy</code></li>
+          <li><code>/robots.txt</code>, <code>/sitemap.xml</code>, <code>/favicon.ico</code>, <code>/ads.txt</code></li>
+          <li><code>/urls</code> — dynamically lists app routes (helpful for discovery and testing).</li>
+          <li><code>/aaaa</code> — a health/test route returning plain text.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section id="image-sources">
+      <h2>Image sourcing &amp; fallback strategy</h2>
+      <p>Sodeom uses four sources in order: DuckDuckGo, Bing, Google, Brave. The function <code>fetch_images_with_fallback</code> tries each engine in sequence and filters out obvious NSFW keywords from URLs.</p>
+
+      <h3>Engine-specific notes</h3>
+      <ul>
+        <li><strong>DuckDuckGo:</strong> Uses vqd token and a JSON endpoint (<code>/i.js</code>). The code extracts the <code>vqd</code> token from the search results page, then calls the JSON endpoint for images.</li>
+        <li><strong>Bing:</strong> Scrapes <code>a.iusc</code> elements and parses the <code>m</code> attribute for <code>murl</code>.</li>
+        <li><strong>Google:</strong> Uses inline <code>AF_initDataCallback</code> blocks and extracts JPG links (fragile — Google frequently changes markup). Use of the Google scraping method may break and should be replaced with an official API for reliability.</li>
+        <li><strong>Brave:</strong> Calls Brave's public image JSON endpoint (<code>/api/images</code>), which is convenient but may be rate limited.</li>
+      </ul>
+
+      <p><strong>Filtering:</strong> Basic URL keyword filtering is used for NSFW terms; for production you should also add content-based filtering (image moderation) and stricter safe-search parameters when calling provider APIs.</p>
+    </section>
+
+    <section id="implementation-details">
+      <h2>Implementation details &amp; helper functions</h2>
+
+      <h3>utf8_string_to_binary / binary_to_utf8_string</h3>
+      <p>Utility functions convert UTF-8 strings to a binary string (bitstream) and back. The binary string is padded to multiples of 64 bits when encoding; the decoder strips trailing zero bytes. The functions are used to let users copy queries as binary and roundtrip them via the <code>b</code> query parameter on the root route.</p>
+
+      <h3>install_image</h3>
+      <p>Downloads a remote image to <code>placeholders/</code> using a SHA1(url). It verifies the upstream <code>Content-Type</code> header begins with <code>image/</code> and streams the response to disk to avoid loading large images into memory. Timeout and error handling are present but basic — consider retry/backoff and more granular error handling for production.</p>
+
+      <h3>HEADERS</h3>
+      <p>All scrapers use a common browser-like <code>User-Agent</code> header to reduce blocking and to get consistent results from search engines.</p>
+    </section>
+
+    <section id="errors">
+      <h2>Errors &amp; common failure modes</h2>
+      <ul>
+        <li><strong>Network errors:</strong> Requests to external engines or the AI backend may timeout (<code>timeout=10</code>). Increase timeouts or add retries for reliability.</li>
+        <li><strong>Parsing failures:</strong> Scrapers rely on fragile HTML structures — any change upstream can cause empty results.</li>
+        <li><strong>Upstream quota:</strong> The GitHub Models endpoint / OpenAI model may fail for auth or quota reasons; surface clear messages to clients and log exceptions.</li>
+        <li><strong>Image MIME mismatches:</strong> Some providers set incorrect content-type headers; install_image rejects responses not starting with <code>image/</code> to avoid saving HTML error pages as images.</li>
+      </ul>
+    </section>
+
+    <section id="security">
+      <h2>Security &amp; hardening recommendations</h2>
+      <ol>
+        <li>Remove hard-coded tokens. Use <code>os.environ</code> and secrets managers.</li>
+        <li>Protect /ai and /api/search behind an API key or OAuth; add rate-limiting (Flask-Limiter) and logging/monitoring.</li>
+        <li>Sanitize and validate any user-supplied URLs or binary payloads before use.</li>
+        <li>Run scrapers behind a proxy that rotates IPs or use official APIs to avoid being blocked.</li>
+        <li>Serve the app with a production WSGI server (Gunicorn/uvicorn) and put a caching layer (Redis) in front of expensive operations.</li>
+      </ol>
+    </section>
+
+    <section id="seo">
+      <h2>SEO &amp; content best practices for this documentation</h2>
+      <p>To maximize discoverability:</p>
+      <ul>
+        <li>Use unique, descriptive <code>&lt;title&gt;</code> and <code>meta description</code> tags for each doc page (done in this file).</li>
+        <li>Use semantic headings (<code>&lt;h1&gt;</code> &amp; <code>&lt;h2&gt;</code>) and include target keywords in the first 100 words.</li>
+        <li>Add <strong>structured data (JSON-LD)</strong> to help search engines understand the page as documentation.</li>
+        <li>Expose a <code>/sitemap.xml</code> and <code>/robots.txt</code> that reference docs and make sure the canonical URL is set.</li>
+        <li>Provide copyable code examples and <code>curl</code> snippets (so search snippets include code previews).</li>
+      </ul>
+
+      <h3>On-page micro-optimizations included</h3>
+      <ul>
+        <li>Canonical link tag.</li>
+        <li>Open Graph &amp; Twitter Card metadata for rich previews.</li>
+        <li>Schema.org JSON-LD for technical documentation.</li>
+        <li>Descriptive anchor text for internal links.</li>
+      </ul>
+    </section>
+
+    <section id="appendix">
+      <h2>Appendix — full route list &amp; sample responses</h2>
+      <p>Auto-generated route list is available at <code>/urls</code>. Example JSON responses:</p>
+
+      <h3>Sample /api/search response</h3>
+      <pre>{
+  "results": [
+    {"title":"Example result","url":"https://example.com","snippet":"Short text..."}
+  ],
+  "query":"example",
+  "page":1,
+  "has_next":false,
+  "has_prev":false,
+  "total_results":1
+}</pre>
+
+      <h3>Sample /ai response</h3>
+      <pre>{
+  "answer": "This is a short AI-generated explanation."
+}</pre>
+
+      <h3>Health check</h3>
+      <p><code>GET /aaaa</code> returns <code>HELLO, WORLD</code> and can be used to verify the app is reachable.</p>
+
+      <h3>Robots &amp; sitemaps</h3>
+      <p><code>/robots.txt</code>, <code>/sitemap.xml</code> and static files like <code>/favicon.ico</code> are exposed for SEO and crawler friendliness.</p>
+    </section>
+
+    <footer>
+      <p>Questions? Want this exported as Markdown, Postman collection, or OpenAPI spec? <strong>Contact the dev team</strong> or request an export. This documentation was generated from the Flask app source and includes security &amp; production recommendations.</p>
+      <p>&copy; Sodeom — Generated documentation</p>
+    </footer>
+  </main>
+</body>
+</html>

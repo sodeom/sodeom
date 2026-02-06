@@ -1,0 +1,38 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Python build artifacts
+build/
+dist/
+*.egg-info/
+
+# Flask
+instance/
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Misc
+*.sqlite3
+*.db

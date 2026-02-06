@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How I Built the Sodeom Search Engine | Abdul Hadi</title>
+<meta name="description" content="Learn how I built the Sodeom search engine using Python and Flask, focusing on privacy, metasearch logic, and real-world SEO techniques.">
+<link rel="canonical" href="https://sodeom.com/blog/how-i-built-the-sodeom-search-engine">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "mainEntityOfPage": {"@type": "WebPage", "@id": "https://sodeom.com/blog/how-i-built-the-sodeom-search-engine"},
+  "headline": "How I Built the Sodeom Search Engine",
+  "description": "Learn how I built the Sodeom search engine using Python and Flask, focusing on privacy, metasearch logic, and real-world SEO techniques.",
+  "image": "https://sodeom.com/images/sodeom-search-engine.png",
+  "author": {"@type": "Person", "name": "Abdul Hadi"},
+  "publisher": {"@type": "Organization", "name": "Sodeom", "logo": {"@type": "ImageObject", "url": "https://sodeom.com/images/logo.png"}},
+  "datePublished": "2026-01-08",
+  "dateModified": "2026-01-08"
+}
+</script>
+
+<style>
+:root {
+  --bg: #0B1220;
+  --surface: #111827;
+  --text: #E5E7EB;
+  --muted: #9CA3AF;
+  --brand: #10B981;
+  --brand-hover: #34D399;
+  --ink: #0B1220;
+}
+body { margin:0; font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); }
+.container { max-width: 900px; margin: 50px auto; padding: 20px; }
+h1 { font-size:2.2em; color: var(--brand); margin-bottom:1em; }
+h2 { font-size:1.5em; color: #E5E7EB; margin-top:2em; margin-bottom:0.5em; }
+p { margin-bottom:1.2em; font-size:1em; line-height:1.6; color: var(--text); }
+a { color: var(--brand); text-decoration:none; }
+a:hover { color: var(--brand-hover); text-decoration: underline; }
+img { max-width: 100%; border-radius: 0.5rem; margin: 20px 0; }
+.btn-primary { background: var(--brand); color: var(--ink); padding:0.75rem 1.25rem; border:none; border-radius:0.5rem; cursor:pointer; font-size:1rem; }
+.btn-primary:hover { background: var(--brand-hover); }
+.results-list { list-style:none; padding:0; margin:1.5rem 0; display:flex; flex-direction:column; gap:1.25rem; }
+.results-list li { background: var(--surface); border:1px solid #1f2937; border-radius:0.75rem; padding:1rem 1.25rem; transition: transform 0.15s ease, border-color 0.15s ease; }
+.results-list li:hover { border-color: var(--brand); transform: translateY(-2px); }
+.results-list h5 { margin:0 0 0.25rem; font-size:1.05rem; font-weight:600; line-height:1.4; }
+.results-list a { color: var(--brand); text-decoration:none; transition: color 0.2s ease, text-decoration 0.2s ease; }
+.results-list a:hover { color: var(--brand-hover); text-decoration: underline; }
+.results-list small { display:block; font-size:0.85rem; color: var(--muted); margin-bottom:0.25rem; word-break: break-all; }
+.description-small { font-size:0.9rem; color: #d1d5db; line-height:1.5; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>How I Built the Sodeom Search Engine</h1>
+<h2>What This Project Does</h2>
+<p>I built the Sodeom search engine to experiment with how search engines actually work behind the scenes while keeping privacy and simplicity in mind. The idea was to create a lightweight metasearch engine that pulls results from multiple sources and shows them in a clean, fast interface.</p>
+<p>Instead of building a massive crawler like Google, Sodeom focuses on aggregating results from existing engines and presenting them in one place. This approach allowed me to learn how search requests, ranking, filtering, and result rendering work without needing huge infrastructure.</p>
+<h2>Tools and Technologies Used</h2>
+<p>The backend of Sodeom is built using Python and Flask, which made routing and request handling straightforward. I used HTML, CSS, and JavaScript on the frontend to keep the interface minimal and responsive.</p>
+<p>For search data, the engine fetches and processes results from multiple sources such as DuckDuckGo and Bing. I also used Cloudflare for DNS and performance improvements, and Netlify for hosting some of the frontend components during early testing.</p>
+<p>This stack helped me move fast while still keeping everything flexible for future upgrades.</p>
+<h2>Problems I Faced While Building It</h2>
+<p>One of the biggest challenges was handling rate limits from external search providers. Sending too many requests too quickly can easily get blocked, so I had to add delays, caching, and smarter request logic.</p>
+<p>Another issue was cleaning and normalizing search results. Different sources return data in different formats, so I had to write custom parsers to make everything look consistent. SEO was also tricky, especially making sure URLs, titles, and metadata were clean and indexable.</p>
+<p>Debugging search relevance was harder than expected, because even small changes in logic can significantly affect result quality.</p>
+<h2>How Others Can Use or Learn From This</h2>
+<p>If you want to learn how search engines work without building everything from scratch, a metasearch engine like Sodeom is a great starting point. You’ll learn about HTTP requests, scraping, APIs, result ranking, and frontend rendering all in one project.</p>
+<p>This project is also useful for anyone interested in privacy-focused tools or alternative search experiences. You can extend it by adding image search, news results, or your own ranking algorithms.</p>
+<p><a href="https://sodeom.com/projects/sodeom-search-engine">View the Sodeom search engine</a></p>
+<img src="https://sodeom.com/favicon.ico" alt="Sodeom privacy-focused search engine interface">
+</div>
+</body>
+</html>

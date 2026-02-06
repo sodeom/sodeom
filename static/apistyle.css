@@ -1,0 +1,194 @@
+/* === Global Dark Theme Reset === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+:root {
+  --bg: #0d0d0d;
+  --bg-secondary: #161616;
+  --card: #1d1d1d;
+  --border: #2a2a2a;
+  --text: #e5e5e5;
+  --text-dim: #b3b3b3;
+  --accent: #4da8ff;
+  --accent-hover: #82c3ff;
+  --radius: 12px;
+  --transition: 0.2s ease;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  padding: 20px;
+  line-height: 1.7;
+}
+
+/* === Layout === */
+.container {
+  max-width: 900px;
+  margin: auto;
+  background: var(--bg-secondary);
+  padding: 25px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+/* === Headings === */
+h1, h2, h3, h4 {
+  color: var(--text);
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+
+p {
+  margin-bottom: 16px;
+  color: var(--text-dim);
+}
+
+/* === Links === */
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+/* === Buttons === */
+button, .btn {
+  background: var(--accent);
+  color: #000;
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+button:hover, .btn:hover {
+  background: var(--accent-hover);
+}
+
+/* === Cards === */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  border: 1px solid var(--border);
+  margin: 16px 0;
+}
+
+/* === Inputs & Forms === */
+input, textarea, select {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  margin-bottom: 14px;
+  transition: var(--transition);
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(77,168,255,0.25);
+}
+
+/* === Tables === */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+th {
+  color: var(--text);
+  text-align: left;
+  background: var(--card);
+}
+
+/* === Lists === */
+ul, ol {
+  margin-left: 22px;
+  color: var(--text-dim);
+}
+
+/* === Code Blocks === */
+code, pre {
+  background: #111;
+  border: 1px solid var(--border);
+  padding: 10px;
+  border-radius: var(--radius);
+  color: #d1d1d1;
+  display: block;
+  margin: 10px 0;
+  overflow-x: auto;
+}
+
+/* === Images === */
+img {
+  max-width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+/* === Navigation Tabs === */
+.navbar {
+  display: flex;
+  gap: 14px;
+  background: var(--card);
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.navbar a {
+  color: var(--text-dim);
+  padding: 8px 14px;
+  border-radius: var(--radius);
+}
+
+.navbar a.active {
+  background: var(--accent);
+  color: #000;
+}
+
+.navbar a:hover {
+  background: var(--accent-hover);
+  color: #000;
+}
+
+/* === Footer === */
+footer {
+  margin-top: 40px;
+  text-align: center;
+  color: var(--text-dim);
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+}
+
+/* === Responsive === */
+@media (max-width: 600px) {
+  .container {
+    padding: 18px;
+  }
+  .navbar {
+    flex-wrap: wrap;
+  }
+}

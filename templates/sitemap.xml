@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+<url>
+  <loc>https://sodeom.com/</loc>
+  <lastmod>2025-07-19T10:03:40+00:00</lastmod>
+  <priority>1.00</priority>
+</url>
+<url>
+  <loc>https://sodeom.com/services/sodium</loc>
+  <lastmod>2025-07-19T10:03:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://sodeom.com/privacy-policy</loc>
+  <lastmod>2025-07-19T10:03:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://sodeom.com/terms</loc>
+  <lastmod>2025-07-19T10:03:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://sodeom.com/contact</loc>
+  <lastmod>2025-07-19T10:03:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://sodeom.com/services</loc>
+  <lastmod>2025-07-19T10:03:40+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://sodeom.com/services/projects</loc>
+  <lastmod>2025-07-19T10:03:40+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://sodeom.com/services/software</loc>
+  <lastmod>2025-07-19T10:03:40+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://sodeom.com/services/webs</loc>
+  <lastmod>2025-07-19T10:03:40+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://sodeom.com/services/ai</loc>
+  <lastmod>2025-07-19T10:03:40+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://sodeom.com/funprojects</loc>
+  <lastmod>2025-07-19T10:03:40+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://sodeom.com/fake-sha256</loc>
+  <lastmod>2025-07-19T10:03:40+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+
+
+</urlset>

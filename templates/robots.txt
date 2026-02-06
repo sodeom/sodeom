@@ -1,0 +1,40 @@
+User-agent: *
+# Block PHP files
+Disallow: /*.php$
+Disallow: /*.php?*
+Disallow: /*.php/*
+
+# Block sensitive config files
+Disallow: /.env
+Disallow: /*.env
+Disallow: /config
+Disallow: /config/*
+Disallow: /*/config/*
+Disallow: /*.config
+Disallow: /*.json
+Disallow: /aws
+Disallow: /aws/*
+Disallow: /*/aws/*
+
+# Block common WordPress exploit paths (since you don’t use WP)
+Disallow: /wp-admin
+Disallow: /wp-content
+Disallow: /wp-includes
+Disallow: /xmlrpc.php
+Disallow: /wp-login.php
+Disallow: /wp-json
+Disallow: /wp-cron.php
+
+# Block generic suspicious patterns
+Disallow: /shell
+Disallow: /shell.php
+Disallow: /phpmyadmin
+Disallow: /pma
+Disallow: /sql
+Disallow: /database
+Disallow: /cgi-bin
+
+# Allow your actual site
+Allow: /
+
+Sitemap: https://sodeom.com/sitemap.xml
