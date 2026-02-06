@@ -1,100 +1,96 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" dir="ltr">
-<head>
-  <!-- Character encoding for proper text rendering -->
-  <meta charset="utf-8">
-  <!-- Responsive viewport for mobile devices -->
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- SEO: canonical URL to consolidate duplicates -->
-  <link rel="canonical" href="https://sodeom.com/wiki/{{ query }}">
-  <!-- Open Graph for social sharing -->
-  <meta property="og:title" content="{{ query }} - WikiReader">
-  <meta property="og:type" content="website">
-  <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/b/b3/TelephoneHelloNellie.jpg">
-  <meta property="og:description" content="Details on {{ query }} from Wikipedia">
-  <!-- Page title -->
-  <title>{{ query or 'WikiReader' }}</title>
-  <!-- Favicon & touch icon -->
-  <link rel="icon" href="/static/favicon/wikipedia.ico">
-  <link rel="apple-touch-icon" href="/static/apple-touch/wikipedia.png">
-  <!-- JSON-LD organization info -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Sodeom",
-    "url": "https://sodeom.com/",
-    "logo": "https://sodeom.com/static/logo.png",
-    "sameAs": ["https://twitter.com/sodeom","https://github.com/sodium520"]
-  }
-  </script>
-  <style>
-    /* [Keep your existing CSS here—omitted for brevity] */
-  </style>
-</head>
-<body>
+  <head>
+    <!-- Character encoding for proper text rendering -->
+    <meta charset="utf-8" />
+    <!-- Responsive viewport for mobile devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- SEO: canonical URL to consolidate duplicates -->
+    <link rel="canonical" href="https://sodeom.com/wiki/{{ query }}" />
+    <!-- Page title -->
+    <title>{{ query or 'WikiReader' }}</title>
+    <!-- Favicon & touch icon -->
+    <link rel="icon" href="/static/favicon/wikipedia.ico" />
+    <link rel="apple-touch-icon" href="/static/apple-touch/wikipedia.png" />
+    <!-- JSON-LD organization info -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Sodeom",
+        "url": "https://sodeom.com/",
+        "logo": "https://sodeom.com/static/logo.png",
+        "sameAs": ["https://twitter.com/sodeom", "https://github.com/sodium520"]
+      }
+    </script>
+    <style>
+      /* [Keep your existing CSS here—omitted for brevity] */
+    </style>
+  </head>
+  <body>
+    <!-- Site header with ARIA banner -->
+    <header class="search-header" role="banner">
+      <div class="container">
+        <h1>Sodi Search Engine</h1>
+        <p>Private, fast &amp; clean searching.</p>
+        <nav role="navigation" aria-label="Primary">
+          <a href="https://mail.sodeom.com/">Mail</a> |
+          <a href="https://sodeom.com/">Search</a>
+          {% if query %} | <a href="/wiki/{{ query }}">Details</a>
+          {% endif %}
+        </nav>
+      </div>
+    </header>
 
-  <!-- Site header with ARIA banner -->
-  <header class="search-header" role="banner">
-    <div class="container">
-      <h1>Sodi Search Engine</h1>
-      <p>Private, fast &amp; clean searching.</p>
-      <nav role="navigation" aria-label="Primary">
-        <a href="https://mail.sodeom.com/">Mail</a> |
-        <a href="https://sodeom.com/">Search</a>
-        {% if query %}
-          | <a href="/wiki/{{ query }}">Details</a>
-        {% endif %}
-      </nav>
-    </div>
-  </header>
-
-  <!-- Main content landmark -->
-  <main class="container" role="main">
-    {% if query %}
+    <!-- Main content landmark -->
+    <main class="container" role="main">
+      {% if query %}
       <h2>Query: {{ query }}</h2>
-    {% endif %}
+      {% endif %}
 
-    <!-- Accessible search form -->
-    <form class="search-form" role="search" method="GET" action="/wiki/">
-      <label for="searchInput" class="visually-hidden">Search Wikipedia</label>
-      <input
-        id="searchInput"
-        name="q"
-        type="text"
-        aria-label="Search Wikipedia"
-        placeholder="{% if query %}Search again…{% else %}What are you looking for?{% endif %}"
-        value="{{ query or '' }}"
-        required>
-      <button class="btn btn-primary" type="submit">Search</button>
-    </form>
+      <!-- Accessible search form -->
+      <form class="search-form" role="search" method="GET" action="/wiki/">
+        <label for="searchInput" class="visually-hidden"
+          >Search Wikipedia</label
+        >
+        <input
+          id="searchInput"
+          name="q"
+          type="text"
+          aria-label="Search Wikipedia"
+          placeholder="{% if query %}Search again…{% else %}What are you looking for?{% endif %}"
+          value="{{ query or '' }}"
+          required
+        />
+        <button class="btn btn-primary" type="submit">Search</button>
+      </form>
 
-    <!-- Wikipedia paragraphs output -->
-    {% if paragraph %}
+      <!-- Wikipedia paragraphs output -->
+      {% if paragraph %}
       <section id="wiki-container">
-        <div id="wiki-content">
-          {{ paragraph|safe }}
-        </div>
+        <div id="wiki-content">{{ paragraph|safe }}</div>
       </section>
-    {% endif %}
-  </main>
+      {% endif %}
+    </main>
 
-  <!-- Footer -->
-  <footer role="contentinfo">
-    <div class="container">
-      <nav role="navigation" aria-label="Footer">
-        <a href="/privacy-policy">Privacy Policy</a>
-        <a href="/terms">Terms of Service</a>
-        <a href="/contact">Contact Us</a>
-        <a href="/services">Sitemap</a>
-      </nav>
-      <p>© 2025 Sodeom. All rights reserved.</p>
-    </div>
-  </footer>
+    <!-- Footer -->
+    <footer role="contentinfo">
+      <div class="container">
+        <nav role="navigation" aria-label="Footer">
+          <a href="/privacy-policy">Privacy Policy</a>
+          <a href="/terms">Terms of Service</a>
+          <a href="/contact">Contact Us</a>
+          <a href="/services">Sitemap</a>
+        </nav>
+        <p>© 2025 Sodeom. All rights reserved.</p>
+      </div>
+    </footer>
 
-  <!-- Lazy-load images by default -->
-  <script>
-    document.querySelectorAll('img').forEach(img => img.setAttribute('loading','lazy'));
-  </script>
-</body>
+    <!-- Lazy-load images by default -->
+    <script>
+      document
+        .querySelectorAll("img")
+        .forEach((img) => img.setAttribute("loading", "lazy"));
+    </script>
+  </body>
 </html>

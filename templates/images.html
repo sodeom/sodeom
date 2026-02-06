@@ -1,103 +1,100 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Primary SEO & Trust Meta -->
-  <title>Sodi Search Engine – Private, Fast & Clean Searching</title>
-  <meta name="description"
-        content="Sodi Search Engine – the private, fast, and clean way to find what you need, without tracking or ads." />
-  <meta name="keywords"
-        content="private search, anonymous search, Sodi search, privacy‑focused search, clean browser" />
-  <meta name="author" content="Sodeom Team" />
-  <meta name="robots" content="index, follow" />
-  <link rel="canonical" href="https://sodeom.com/" />
+    <!-- Primary SEO & Trust Meta -->
+    <title>Sodi Search Engine – Private, Fast & Clean Searching</title>
+    <meta
+      name="description"
+      content="Sodi Search Engine – the private, fast, and clean way to find what you need, without tracking or ads."
+    />
+    <meta
+      name="keywords"
+      content="private search, anonymous search, Sodi search, privacy‑focused search, clean browser"
+    />
+    <meta name="author" content="Sodeom Team" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://sodeom.com/" />
 
-  <!-- Open Graph -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://sodeom.com/" />
-  <meta property="og:title"
-        content="Sodi Search Engine – Private, Fast & Clean" />
-  <meta property="og:description"
-        content="Experience privacy‑first searching with Sodi Search Engine. No tracking, no ads." />
-  <meta property="og:image"
-        content="https://sodeom.com/static/social-preview.png" />
+    <!-- Organization JSON‑LD -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Sodeom",
+        "url": "https://sodeom.com/",
+        "logo": "https://sodeom.com/static/logo.png",
+        "sameAs": ["https://twitter.com/sodeom", "https://github.com/sodium520"]
+      }
+    </script>
 
-  <!-- Organization JSON‑LD -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "Sodeom",
-    "url": "https://sodeom.com/",
-    "logo": "https://sodeom.com/static/logo.png",
-    "sameAs": [
-      "https://twitter.com/sodeom",
-      "https://github.com/sodium520"
-    ]
-  }
-  </script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styleimg.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Sticky Header -->
+    <header class="search-header">
+      <div class="container">
+        <h1>Sodi Search Engine</h1>
+        <p style="margin-top: 0.75rem">Private, fast & clean searching.</p>
+        <div style="margin: 1rem 0">
+          <a href="/services/sodium" class="btn btn-outline-light btn-lg"
+            >Download Sodi Browser</a
+          >
+        </div>
+        <nav>
+          <a href="https://mail.sodeom.com/">Mail</a> |
+          <a href="https://sodeom.com/">Search</a>
+        </nav>
+        {% if query %}
+        <nav>
+          <a href="/?q={{query}}">Webs</a>
+          <a href="/images?q={{query}}">Image</a>
+          <a href="/wiki/{{query}}">Details</a>
+        </nav>
+        {% endif %}
+      </div>
+    </header>
 
-<link rel="stylesheet" href="{{ url_for('static', filename='styleimg.css') }}">
-
-</head>
-<body>
-
-  <!-- Sticky Header -->
-<header class="search-header">
-  <div class="container">
-    <h1>Sodi Search Engine</h1>
-    <p style="margin-top: 0.75rem;">Private, fast & clean searching.</p>
-    <div style="margin: 1rem 0;">
-      <a href="/services/sodium" class="btn btn-outline-light btn-lg">Download Sodi Browser</a>
-    </div>
-    <nav>
-      <a href="https://mail.sodeom.com/">Mail</a> |
-      <a href="https://sodeom.com/">Search</a>
-    </nav>
-    {% if query %}
-    <nav>
-        <a href="/?q={{query}}">Webs</a>
-        <a href="/images?q={{query}}">Image</a>
-        <a href="/wiki/{{query}}">Details</a>
-    </nav>
-    {% endif %}
-  </div>
-</header>
-
-  <!-- Main Search -->
-  <main class="container">
-     {% if query %}
+    <!-- Main Search -->
+    <main class="container">
+      {% if query %}
       <h2><span>Query: {{ query }}</span></h2>
-     {% endif %}
-    <form class="search-form" method="GET" role="search">
-      <input type="text" name="q"
-             placeholder="{% if query %}Search again…{% else %}What are you looking for?{% endif %}"
-             value="{{ query or '' }}" required />
-      <button class="btn btn-primary" type="submit">Search</button>
-    </form>
+      {% endif %}
+      <form class="search-form" method="GET" role="search">
+        <input
+          type="text"
+          name="q"
+          placeholder="{% if query %}Search again…{% else %}What are you looking for?{% endif %}"
+          value="{{ query or '' }}"
+          required
+        />
+        <button class="btn btn-primary" type="submit">Search</button>
+      </form>
 
-    {% if query %}
-    <!-- Image List Section -->
-    {% if images %}
+      {% if query %}
+      <!-- Image List Section -->
+      {% if images %}
       <h2>Image Results</h2>
       <ul class="image-list">
         {% for image in images %}
         <li>
           <a href="{{ image }}" target="_blank" rel="noopener noreferrer">
-            <img src="{{ image }}" alt="Image preview">
+            <img src="{{ image }}" alt="Image preview" />
           </a>
         </li>
         {% endfor %}
       </ul>
-    {% endif %}
-    {% endif %}
-  </main>
+      {% endif %} {% endif %}
+    </main>
 
-  <!-- Footer with Legal & Trust Links -->
-  <footer>
+    <!-- Footer with Legal & Trust Links -->
+    <footer>
       <div class="container">
         <nav>
           <a href="/privacy-policy">Privacy Policy</a>
@@ -106,21 +103,7 @@
           <a href="/services">Sitemap</a>
         </nav>
       </div>
-    <p>© 2025 Sodeom. All rights reserved.</p>
-  </footer>
-
-  <!-- Deferred JS Loader -->
-  <script>
-    (function(){
-      var s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/@popperjs/core@2/dist/umd/popper.min.js';
-      s.onload = function(){
-        var b = document.createElement('script');
-        b.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js';
-        document.head.appendChild(b);
-      };
-      document.head.appendChild(s);
-    })();
-  </script>
-</body>
+      <p>© 2025 Sodeom. All rights reserved.</p>
+    </footer>
+  </body>
 </html>
