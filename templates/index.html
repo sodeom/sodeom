@@ -1,11 +1,11 @@
-{% extends "base.html" %} {% block title %}Best Private Search Engine 2025 -
-Sodi Search Without Tracking{% endblock %} {% block head_extra %}
+{% extends "base.html" %} {% block title %}Sodeom - Private Search Engine{%
+endblock %} {% block head_extra %}
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="language" content="English" />
 <meta name="robots" content="index, follow" />
 <meta
   name="description"
-  content="Discover the best private search engine that doesn't track you. Sodi offers secure, anonymous search with no ads - the perfect Google alternative for privacy-focused users."
+  content="Discover a private search engine that doesn't track you. Sodeom offers secure, anonymous search with no ads - a privacy-focused alternative to Google."
 />
 <meta
   name="keywords"
@@ -18,7 +18,7 @@ Sodi Search Without Tracking{% endblock %} {% block head_extra %}
   {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "Sodi Search Engine",
+    "name": "Sodeom Search Engine",
     "alternateName": "Sodeom",
     "description": "Private search engine that doesn't track users",
     "url": "https://sodeom.com/",
@@ -33,8 +33,8 @@ Sodi Search Without Tracking{% endblock %} {% block head_extra %}
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "Sodi Search Engine",
-    "description": "The best private search engine for secure, anonymous web searching",
+    "name": "Sodeom Search Engine",
+    "description": "Private search engine for secure, anonymous web searching",
     "url": "https://sodeom.com/",
     "keywords": "private search engine, secure search, anonymous search",
     "potentialAction": {
@@ -55,35 +55,37 @@ Sodi Search Without Tracking{% endblock %} {% block head_extra %}
         "name": "What is the most private search engine?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Sodi Search Engine is designed as a private search engine that doesn't track users, store personal data, or show targeted ads."
+          "text": "Sodeom Search Engine is designed as a private search engine that doesn't track users, store personal data, or show targeted ads."
         }
       },
       {
         "@type": "Question",
-        "name": "Is Sodi a good Google alternative?",
+        "name": "Is Sodeom a good Google alternative?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes, Sodi Search provides fast, private search results without the tracking and data collection associated with Google."
+          "text": "Yes, Sodeom Search provides fast, private search results without the tracking and data collection associated with Google."
         }
       }
     ]
   }
 </script>
 {% endblock %} {% block header %}
-<img src="/favicon.ico" alt="Sodi Logo" width="48" height="48" />
-<h1>Sodi - Private Search Engine</h1>
-<p>The best search engine that doesn't track you</p>
+<img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
+<h1>Sodeom - Private Search Engine</h1>
+<p>Private search with zero tracking and minimal filtering.</p>
 
-<nav>
-  <a href="https://mail.sodeom.com/">Private Mail</a> |
-  <a href="https://sodeom.com/">Secure Search</a>
+<nav class="product-nav" aria-label="Sodeom products">
+  <a class="btn btn-outline-light" href="https://mail.sodeom.com/"
+    >Private Mail</a
+  >
+  <a class="btn btn-outline-light" href="https://sodeom.com/">Secure Search</a>
 </nav>
 
 <form class="search-form" method="GET" role="search">
   <input
     type="text"
     name="q"
-    placeholder="Search privately..."
+    placeholder="Search the web without tracking..."
     value="{{ query }}"
     required
   />
@@ -128,8 +130,7 @@ Sodi Search Without Tracking{% endblock %} {% block head_extra %}
 <section class="hero-section">
   <h2>Search Without Being Tracked</h2>
   <p>
-    Experience the most private search engine that protects your data and
-    respects your privacy.
+    Private search that protects your data and keeps results free of profiling.
   </p>
 </section>
 
@@ -153,6 +154,13 @@ Sodi Search Without Tracking{% endblock %} {% block head_extra %}
     <p>
       Get instant search results from multiple sources while maintaining
       complete privacy protection.
+    </p>
+  </div>
+  <div class="feature-card">
+    <h3>🧭 Minimal Filtering</h3>
+    <p>
+      Results are not personalized or reshaped by user profiles, so you see a
+      broader, more neutral view of the web.
     </p>
   </div>
 </div>

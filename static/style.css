@@ -86,6 +86,13 @@ a:hover {
 .search-form {
   margin-top: 1.25rem;
 }
+.product-nav {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
 .search-nav {
   margin-top: 1rem;
 }
