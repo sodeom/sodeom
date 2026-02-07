@@ -1,98 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Placeholder API Documentation</title>
-  <style>
-    body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      line-height: 1.6;
-      margin: 0;
-      padding: 0;
-      background: #f9fafb;
-      color: #333;
-    }
-    header {
-      background: #0d6efd;
-      color: white;
-      padding: 2rem;
-      text-align: center;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 2.2rem;
-    }
-    main {
-      max-width: 900px;
-      margin: 2rem auto;
-      padding: 2rem;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-    h2 {
-      color: #0d6efd;
-      margin-top: 2rem;
-    }
-    code {
-      background: #f1f1f1;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.95rem;
-    }
-    pre {
-      background: #1e1e1e;
-      color: #d4d4d4;
-      padding: 1rem;
-      border-radius: 8px;
-      overflow-x: auto;
-    }
-    .example {
-      background: #eef6ff;
-      border-left: 4px solid #0d6efd;
-      padding: 1rem;
-      margin: 1.5rem 0;
-      border-radius: 6px;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Placeholder API Documentation</h1>
-    <p>Dynamic image fetching & rendering endpoint</p>
-  </header>
-  <main>
-    <h2>Base URL</h2>
-    <p><code>https://sodeom.com/placeholder</code></p>
+{% extends "base.html" %} {% block title %}Placeholder API Documentation -
+Sodeom{% endblock %} {% block content %}
+<div class="content-card">
+  <h1 class="page-title">Placeholder API Documentation</h1>
+  <p class="page-subtitle">Dynamic image fetching & rendering endpoint</p>
 
-    <h2>Query Parameters</h2>
-    <ul>
-      <li><code>q</code> (required) — Search term for the placeholder image.<br>
-          Example: <code>?q=car</code></li>
-      <li><code>page</code> (optional, default=1) — Page number of search results.<br>
-          Example: <code>?q=car&page=2</code></li>
-    </ul>
+  <h2>Base URL</h2>
+  <p><code>https://sodeom.com/placeholder</code></p>
 
-    <h2>Example Request</h2>
-    <div class="example">
-      <p><strong>GET</strong> request:</p>
-      <code>https://sodeom.com/placeholder?q=car</code>
-    </div>
+  <h2>Query Parameters</h2>
+  <ul>
+    <li>
+      <code>q</code> (required) — Search term for the placeholder image.<br />
+      Example: <code>?q=car</code>
+    </li>
+    <li>
+      <code>page</code> (optional, default=1) — Page number of search
+      results.<br />
+      Example: <code>?q=car&page=2</code>
+    </li>
+  </ul>
 
-    <h2>Example Response</h2>
-    <p>The endpoint returns an <strong>image file</strong> directly. You can embed it in HTML:</p>
-    <pre>&lt;img src="https://sodeom.com/placeholder?q=car" alt="Car Image"&gt;</pre>
+  <h2>Example Request</h2>
+  <div class="content-card" style="margin-top: 1rem">
+    <p><strong>GET</strong> request:</p>
+    <code>https://sodeom.com/placeholder?q=car</code>
+  </div>
 
-    <h2>Error Handling</h2>
-    <ul>
-      <li>If <code>q</code> is missing → returns <code>Enter The Query</code></li>
-      <li>If no image is found → returns a plain text error message</li>
-    </ul>
+  <h2>Example Response</h2>
+  <p>
+    The endpoint returns an <strong>image file</strong> directly. You can embed
+    it in HTML:
+  </p>
+  <pre>
+&lt;img src="https://sodeom.com/placeholder?q=car" alt="Car Image"&gt;</pre
+  >
 
-    <h2>Usage in HTML</h2>
-    <pre>&lt;!-- Example integration --&gt;
-&lt;img src="https://sodeom.com/placeholder?q=mountain" alt="Mountain"&gt;</pre>
-  </main>
-</body>
-</html>
+  <h2>Error Handling</h2>
+  <ul>
+    <li>If <code>q</code> is missing → returns <code>Enter The Query</code></li>
+    <li>If no image is found → returns a plain text error message</li>
+  </ul>
+
+  <h2>Usage in HTML</h2>
+  <pre>
+&lt;!-- Example integration --&gt;
+&lt;img src="https://sodeom.com/placeholder?q=mountain" alt="Mountain"&gt;</pre
+  >
+</div>
+{% endblock %}

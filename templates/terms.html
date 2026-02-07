@@ -1,180 +1,86 @@
-<!-- Terms of Service Page -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Terms of Service - Sodeom</title>
-  <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: #f7f9fc; color: #333; }
-    header { background: #4a90e2; color: #fff; padding: 2rem 1rem; text-align: center; }
-    header h1 { margin: 0; font-size: 2.5rem; }
-    header p { margin-top: 0.5rem; font-size: 1rem; }
-    main { max-width: 800px; margin: 2rem auto; background: #fff; padding: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; }
-    section + section { margin-top: 1.5rem; }
-    h2 { font-size: 1.5rem; color: #333; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
-    ul { margin: 0.5rem 0 1rem 1.5rem; }
-    a { color: #4a90e2; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    footer { text-align: center; padding: 1rem; font-size: 0.9rem; color: #777; }
+{% extends "base.html" %} {% block title %}Terms of Service - Sodeom{% endblock
+%} {% block content %}
+<div class="content-card">
+  <h1 class="page-title">Terms of Service</h1>
+  <p class="page-subtitle">Effective Date: April 19, 2025</p>
 
-  </style>
+  <section>
+    <h2>1. Acceptance of Terms</h2>
+    <p>
+      By accessing or using our web app at
+      <a href="https://sodeom.com">https://sodeom.com</a>, you agree to comply
+      with these Terms of Service. If you do not agree, please do not use our
+      services.
+    </p>
+  </section>
 
-</head>
-<body>
-  <header>
-    <h1>Terms of Service</h1>
-    <p>Effective Date: April 19, 2025</p>
-  </header>
-  <main>
-    <section>
-      <h2>1. Acceptance of Terms</h2>
-      <p>By accessing or using our web app at <a href="https://sodeom.com">https://sodeom.com</a>, you agree to comply with these Terms of Service. If you do not agree, please do not use our services.</p>
-    </section>
+  <section>
+    <h2>2. User Responsibilities</h2>
+    <ul>
+      <li>You must be at least 18 years old.</li>
+      <li>You agree to provide accurate, current, and complete information.</li>
+      <li>You will use the Site lawfully and respectfully.</li>
+    </ul>
+  </section>
 
-    <section>
-      <h2>2. User Responsibilities</h2>
-      <ul>
-        <li>You must be at least 18 years old.</li>
-        <li>You agree to provide accurate, current, and complete information.</li>
-        <li>You will use the Site lawfully and respectfully.</li>
-      </ul>
-    </section>
+  <section>
+    <h2>3. Account Registration</h2>
+    <p>
+      To access certain features, you must register and maintain confidentiality
+      of your credentials. Notify us immediately of any breach.
+    </p>
+  </section>
 
-    <section>
-      <h2>3. Account Registration</h2>
-      <p>To access certain features, you must register and maintain confidentiality of your credentials. Notify us immediately of any breach.</p>
-    </section>
+  <section>
+    <h2>4. Privacy</h2>
+    <p>
+      Our <a href="/privacy-policy">Privacy Policy</a> explains data handling
+      practices.
+    </p>
+  </section>
 
-    <section>
-      <h2>4. Privacy</h2>
-      <p>Our <a href="/privacy-policy.html">Privacy Policy</a> explains data handling practices.</p>
-    </section>
+  <section>
+    <h2>5. Prohibited Conduct</h2>
+    <ul>
+      <li>Illegal activity or interference with Site operation.</li>
+      <li>Hacking, distributing malware, or harmful content.</li>
+    </ul>
+  </section>
 
-    <section>
-      <h2>5. Prohibited Conduct</h2>
-      <ul>
-        <li>Illegal activity or interference with Site operation.</li>
-        <li>Hacking, distributing malware, or harmful content.</li>
-      </ul>
-    </section>
+  <section>
+    <h2>6. Termination</h2>
+    <p>
+      We may suspend or terminate access for violations or at our discretion.
+    </p>
+  </section>
 
-    <section>
-      <h2>6. Termination</h2>
-      <p>We may suspend or terminate access for violations or at our discretion.</p>
-    </section>
+  <section>
+    <h2>7. Limitation of Liability</h2>
+    <p>
+      We are not liable for any damages arising from use of the Site to the
+      fullest extent permitted by law.
+    </p>
+  </section>
 
-    <section>
-      <h2>7. Limitation of Liability</h2>
-      <p>We are not liable for any damages arising from use of the Site to the fullest extent permitted by law.</p>
-    </section>
+  <section>
+    <h2>8. Changes to Terms</h2>
+    <p>
+      We reserve the right to update these Terms. Changes will be posted with a
+      new effective date.
+    </p>
+  </section>
 
-    <section>
-      <h2>8. Changes to Terms</h2>
-      <p>We reserve the right to update these Terms. Changes will be posted with a new effective date.</p>
-    </section>
+  <section>
+    <h2>9. Governing Law</h2>
+    <p>These Terms are governed by the laws of your jurisdiction.</p>
+  </section>
 
-    <section>
-      <h2>9. Governing Law</h2>
-      <p>These Terms are governed by the laws of your jurisdiction.</p>
-    </section>
-
-    <section>
-      <h2>10. Contact Us</h2>
-      <p>Questions? Email us at <a href="mailto:contact@sodeom.com">contact@sodeom.com</a>.</p>
-    </section>
-  </main>
-  <footer>
-    &copy; 2025 Sodeom. All rights reserved.
-  </footer>
-
-  <!-- Privacy Policy Page -->
-  <div style="display:none;">
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Privacy Policy - Sodeom</title>
-      <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: #f7f9fc; color: #333; }
-        header { background: #4a90e2; color: #fff; padding: 2rem 1rem; text-align: center; }
-        header h1 { margin: 0; font-size: 2.5rem; }
-        header p { margin-top: 0.5rem; font-size: 1rem; }
-        main { max-width: 800px; margin: 2rem auto; background: #fff; padding: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 8px; }
-        section + section { margin-top: 1.5rem; }
-        h2 { font-size: 1.5rem; color: #333; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; }
-        ul { margin: 0.5rem 0 1rem 1.5rem; }
-        a { color: #4a90e2; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        footer { text-align: center; padding: 1rem; font-size: 0.9rem; color: #777; }
-      </style>
-    </head>
-    <body>
-      <header>
-        <h1>Privacy Policy</h1>
-        <p>Effective Date: April 19, 2025</p>
-      </header>
-      <main>
-        <section>
-          <h2>1. Information We Collect</h2>
-          <ul>
-            <li><strong>Personal Data:</strong> Username, password from registration.</li>
-            <li><strong>Usage Data:</strong> IP address, browser, actions on Site.</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2>2. How We Use Data</h2>
-          <ul>
-            <li>Provide and improve services.</li>
-            <li>Respond to user inquiries.</li>
-            <li>Analyze usage trends.</n          </ul>
-        </section>
-
-        <section>
-          <h2>3. Data Retention</h2>
-          <p>Retained as needed for service provision and legal compliance.</p>
-        </section>
-
-        <section>
-          <h2>4. Sharing Data</h2>
-          <p>No sale of data. Shared only with trusted service providers under confidentiality.</p>
-        </section>
-
-        <section>
-          <h2>5. Cookies & Tracking</h2>
-          <p>We use cookies for functionality and analytics. Manage via browser settings.</p>
-        </section>
-
-        <section>
-          <h2>6. Security</h2>
-          <p>Reasonable measures to protect data, though no system is fully secure.</p>
-        </section>
-
-        <section>
-          <h2>7. Your Rights</h2>
-          <p>Access, delete, or correct your data. Contact us to exercise rights.</p>
-        </section>
-
-        <section>
-          <h2>8. Third-Party Links</h2>
-          <p>Not responsible for external site practices.</p>
-        </section>
-
-        <section>
-          <h2>9. Policy Updates</h2>
-          <p>Changes posted here with new effective dates.</p>
-        </section>
-
-        <section>
-          <h2>10. Contact Us</h2>
-          <p>Email: <a href="mailto:contact@sodeom.com">contact@sodeom.com</a></p>
-        </section>
-      </main>
-      <footer>
-        &copy; 2025 Sodeom. All rights reserved.
-      </footer>
-    </body>
-    </html>
-  </div>
+  <section>
+    <h2>10. Contact Us</h2>
+    <p>
+      Questions? Email us at
+      <a href="mailto:contact@sodeom.com">contact@sodeom.com</a>.
+    </p>
+  </section>
+</div>
+{% endblock %}

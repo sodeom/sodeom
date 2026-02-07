@@ -1,17 +1,11 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+{% extends "base.html" %}
 
-  <title>Sodeom API Documentation — Search, Images, AI Routes & Placeholder Service</title>
+{% block title %}Sodeom API Documentation — Search, Images, AI & Placeholder{% endblock %}
+
+{% block head_extra %}
   <meta name="description" content="Comprehensive API reference for the Sodeom Flask app: /api/search, /ai, /placeholder, /images and all public routes. Usage examples, query parameters, responses, error codes, security notes and SEO-optimized guide.">
-  <meta name="keywords" content="Sodeom API, search API, images API, placeholder image, DuckDuckGo scrape, Bing images, Google images, Brave images, Flask API, OpenAI on GitHub Models">
+  <meta name="keywords" content="Sodeom API, search API, images API, placeholder image, DuckDuckGo scrape, Bing images, Google images, Brave images, Flask API">
   <link rel="canonical" href="https://sodeom.com/docs/api">
-
-     <link rel="stylesheet" href="static/apistyle.css" />
-
-  <!-- Structured data (JSON-LD) for SEO, describes the API documentation -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -22,8 +16,9 @@
     "publisher": {"@type":"Organization","name":"Sodeom","url":"https://sodeom.com"}
   }
   </script>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
   <header>
     <p class="badge">Sodeom • API Reference</p>
     <h1>Sodeom API Documentation</h1>
@@ -338,5 +333,4 @@ curl -X POST "https://sodeom.com/ai?query=hi" -H "Content-Type: application/json
       <p>&copy; Sodeom — Generated documentation</p>
     </footer>
   </main>
-</body>
-</html>
+{% endblock %}

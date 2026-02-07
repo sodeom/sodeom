@@ -1,34 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Find answers to common questions about private, ad-free, and metasearch engines. Learn how to search the web without being tracked." />
-  <meta name="robots" content="index, follow" />
-  <meta name="keywords" content="private search engine, metasearch, ad-free search, search without tracking, best privacy search engine" />
-  <meta name="author" content="Abdul Hadi" />
-  <title>Frequently Asked Questions - Private Search Guide</title>
-  <link rel="canonical" href="https://sodeom.com/faq.html" />
-  <style>
-    body {
-      font-family: sans-serif;
-      line-height: 1.6;
-      padding: 2rem;
-      max-width: 800px;
-      margin: auto;
-      background: #f9f9f9;
-    }
-    h1, h2 {
-      color: #222;
-    }
-    section {
-      margin-bottom: 2rem;
-    }
-    p {
-      color: #444;
-    }
-  </style>
-  <script type="application/ld+json">
+{% extends "base.html" %} {% block title %}Frequently Asked Questions - Private
+Search Guide{% endblock %} {% block head_extra %}
+<meta
+  name="description"
+  content="Find answers to common questions about private, ad-free, and metasearch engines. Learn how to search the web without being tracked."
+/>
+<meta name="robots" content="index, follow" />
+<meta
+  name="keywords"
+  content="private search engine, metasearch, ad-free search, search without tracking, best privacy search engine"
+/>
+<meta name="author" content="Abdul Hadi" />
+<link rel="canonical" href="https://sodeom.com/faq.html" />
+<script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -115,62 +98,99 @@
       }
     ]
   }
-  </script>
-</head>
-<body>
+</script>
+{% endblock %} {% block content %}
+<div class="content-card">
+  <h1 class="page-title">Frequently Asked Questions</h1>
+  <p class="page-subtitle">Private search, metasearch, and ad-free browsing.</p>
   <main>
     <h1>Frequently Asked Questions</h1>
 
     <section>
       <h2>What is the best search engine for privacy?</h2>
-      <p>The best privacy-focused search engines are ones that don't log IP addresses, block trackers, and remove search profiling.</p>
+      <p>
+        The best privacy-focused search engines are ones that don't log IP
+        addresses, block trackers, and remove search profiling.
+      </p>
     </section>
 
     <section>
       <h2>How can I search the web without being tracked?</h2>
-      <p>You can use metasearch engines that don’t store your history or profile you, and that strip tracking from links.</p>
+      <p>
+        You can use metasearch engines that don’t store your history or profile
+        you, and that strip tracking from links.
+      </p>
     </section>
 
     <section>
-      <h2>Is there a search engine that combines results from Google and Bing?</h2>
-      <p>Yes, metasearch engines combine results from multiple providers like Google and Bing without tracking you.</p>
+      <h2>
+        Is there a search engine that combines results from Google and Bing?
+      </h2>
+      <p>
+        Yes, metasearch engines combine results from multiple providers like
+        Google and Bing without tracking you.
+      </p>
     </section>
 
     <section>
       <h2>Are there search engines that don’t show ads?</h2>
-      <p>Yes, some engines show only clean, ad-free results and don’t monetize via sponsored links.</p>
+      <p>
+        Yes, some engines show only clean, ad-free results and don’t monetize
+        via sponsored links.
+      </p>
     </section>
 
     <section>
       <h2>How do private search engines work?</h2>
-      <p>They act as anonymous middlemen, fetching results from other engines without logging or profiling you.</p>
+      <p>
+        They act as anonymous middlemen, fetching results from other engines
+        without logging or profiling you.
+      </p>
     </section>
 
     <section>
       <h2>Can I use a search engine that doesn’t track my location?</h2>
-      <p>Yes, privacy-based engines avoid using GPS, IP geolocation, or device tracking.</p>
+      <p>
+        Yes, privacy-based engines avoid using GPS, IP geolocation, or device
+        tracking.
+      </p>
     </section>
 
     <section>
       <h2>Are metasearch engines legal?</h2>
-      <p>Yes, they aggregate public search results and typically follow fair-use or API rules.</p>
+      <p>
+        Yes, they aggregate public search results and typically follow fair-use
+        or API rules.
+      </p>
     </section>
 
     <section>
-      <h2>What is the difference between a search engine and a metasearch engine?</h2>
-      <p>Search engines index the web, while metasearch engines fetch results from other engines in real time.</p>
+      <h2>
+        What is the difference between a search engine and a metasearch engine?
+      </h2>
+      <p>
+        Search engines index the web, while metasearch engines fetch results
+        from other engines in real time.
+      </p>
     </section>
 
     <section>
       <h2>Why am I seeing different search results on different engines?</h2>
-      <p>Each engine uses its own algorithm and filters. Metasearch tools help eliminate that bias.</p>
+      <p>
+        Each engine uses its own algorithm and filters. Metasearch tools help
+        eliminate that bias.
+      </p>
     </section>
 
     <section>
-      <h2>Is there a way to see search results from multiple engines at once?</h2>
-      <p>Yes, some tools let you view combined results from Google, Bing, DuckDuckGo, and more on a single page.</p>
+      <h2>
+        Is there a way to see search results from multiple engines at once?
+      </h2>
+      <p>
+        Yes, some tools let you view combined results from Google, Bing,
+        DuckDuckGo, and more on a single page.
+      </p>
     </section>
-
   </main>
-</body>
-</html>
+</div>
+{% endblock %}

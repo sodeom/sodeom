@@ -1,230 +1,169 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% extends "base.html" %}
 
-    <title>Fake SHA256 Hash Calculator - Online Hash Simulator Tool</title>
+{% block title %}Fake SHA256 Hash Calculator - Online Hash Simulator Tool{% endblock %}
 
-    <meta
-      name="description"
-      content="Simulate a fake SHA256-like hash result using a custom formula. Enter a number to get a calculated hash and view the source code in Python."
+{% block head_extra %}
+  <meta name="description" content="Simulate a fake SHA256-like hash result using a custom formula. Enter a number to get a calculated hash and view the source code in Python." />
+  <meta name="keywords" content="Fake SHA256, SHA256 hash calculator, online hash tool, hash simulator, custom hash formula, SHA256 example, Python hash function" />
+  <meta name="author" content="Sodeom.com" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://sodeom.com/fake-sha256" />
+  <style>
+    .hash-card {
+      background: var(--surface);
+      border: 1px solid #1f2937;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    .hash-card input,
+    .hash-card button {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid #334155;
+      margin-bottom: 0.75rem;
+      background: #0b1220;
+      color: var(--text);
+    }
+    .hash-card button {
+      background: var(--brand);
+      color: var(--ink);
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .hash-result {
+      margin-top: 0.5rem;
+      color: #34d399;
+      font-weight: 600;
+    }
+    .code-container {
+      margin-top: 2rem;
+    }
+    .copy-button {
+      background: #1f2937;
+      color: #e5e7eb;
+      border: none;
+      padding: 0.4rem 0.75rem;
+      border-radius: 0.4rem;
+      cursor: pointer;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="hash-card">
+    <h1 class="page-title">Fake SHA256 Hash Calculator</h1>
+    <p class="page-subtitle">Simulate a custom SHA256-like hash from any number input.</p>
+    <input
+      id="numberInput"
+      type="number"
+      placeholder="Enter a number"
+      aria-label="Number Input for Fake SHA256"
     />
-    <meta
-      name="keywords"
-      content="Fake SHA256, SHA256 hash calculator, online hash tool, hash simulator, custom hash formula, SHA256 example, Python hash function"
-    />
-    <meta name="author" content="Sodeom.com" />
-    <meta name="robots" content="index, follow" />
+    <button onclick="calculate()">Get Hash Result</button>
+    <div id="ans" class="hash-result" aria-live="polite"></div>
+    <div class="equation" aria-label="Hash Formula">
+      [(n + 99991) &times; 1234567 + (n + 99991)<sup>3</sup> + floor((n + 99991)
+      &divide; 7)] mod 100000000
+    </div>
+  </div>
 
-    <link rel="canonical" href="https://sodeom.com/fake-sha256" />
-
-    <style>
-      body {
-        font-family: "Segoe UI", sans-serif;
-        background-color: #0d0d0d;
-        color: #eee;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .container {
-        background-color: #1a1a1a;
-        margin-top: 60px;
-        padding: 30px;
-        border-radius: 14px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
-        max-width: 90%;
-        width: 420px;
-        text-align: center;
-      }
-
-      input,
-      button {
-        width: 100%;
-        padding: 12px;
-        font-size: 16px;
-        margin-bottom: 15px;
-        border-radius: 8px;
-        border: 1px solid #444;
-        background-color: #111;
-        color: #eee;
-        box-sizing: border-box;
-      }
-
-      button {
-        background-color: #0078d7;
-        color: white;
-        border: none;
-        cursor: pointer;
-      }
-
-      button:hover {
-        background-color: #005fa3;
-      }
-
-      #ans {
-        font-size: 30px;
-        font-weight: bold;
-        margin-top: 20px;
-        color: #00ff00;
-        min-height: 40px;
-        white-space: pre-wrap;
-        overflow-wrap: break-word;
-      }
-
-      .equation {
-        margin-top: 20px;
-        font-size: 16px;
-        background: #111;
-        padding: 12px;
-        border-radius: 8px;
-        color: #ccc;
-        font-family: "Courier New", monospace;
-      }
-
-      .code-container {
-        margin-top: 40px;
-        max-width: 95%;
-        width: 700px;
-        position: relative;
-      }
-
-      .code-title {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 8px;
-        color: #ccc;
-      }
-
-      .code-block {
-        background-color: #000;
-        color: #00ff00;
-        padding: 20px;
-        border-radius: 8px;
-        font-family: "Courier New", monospace;
-        font-size: 14px;
-        white-space: pre-wrap;
-        overflow-x: auto;
-        max-height: 400px;
-      }
-
-      .copy-button {
-        position: absolute;
-        top: 2px;
-        right: 5px;
-        padding: 5px 10px;
-        font-size: 13px;
-        border-radius: 6px;
-        background: #00aa00;
-        color: white;
-        border: none;
-        cursor: pointer;
-      }
-
-      .copy-button:hover {
-        background: #008800;
-      }
-
-      @media screen and (max-width: 600px) {
-        .container {
-          margin-top: 30px;
-          padding: 20px;
-        }
-
-        input,
-        button {
-          font-size: 15px;
-          padding: 10px;
-        }
-
-        .code-block {
-          font-size: 13px;
-          padding: 15px;
-        }
-
-        .copy-button {
-          font-size: 12px;
-          padding: 4px 8px;
-        }
-
-        #ans {
-          font-size: 26px;
-        }
-      }
-    </style>
-
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Fake SHA256 Calculator",
-        "url": "https://sodeom.com/fake-sha256",
-        "applicationCategory": "EducationalApplication",
-        "operatingSystem": "All",
-        "description": "A free online fake SHA256-like hash simulator with a simple mathematical formula and Python code.",
-        "inLanguage": "en",
-        "author": {
-          "@type": "Person",
-          "name": "Abdul Hadi"
-        }
-      }
-    </script>
-  </head>
-  <body>
-    <main class="container">
-      <header>
-        <h1>Fake SHA256 Hash Calculator</h1>
-        <p>
-          Simulate a custom SHA256-like hash from any number input using a fake
-          algorithm.
-        </p>
-      </header>
-
-      <section>
-        <input
-          id="numberInput"
-          type="number"
-          placeholder="Enter a number"
-          aria-label="Number Input for Fake SHA256"
-        />
-        <button onclick="calculate()">Get Hash Result</button>
-        <div id="ans" aria-live="polite"></div>
-        <div class="equation" aria-label="Hash Formula">
-          [(n + 99991) &times; 1234567 + (n + 99991)<sup>3</sup> + floor((n +
-          99991) &divide; 7)] mod 100000000
-        </div>
-      </section>
-    </main>
-
-    <section class="code-container">
-      <h2 class="code-title">*</h2>
-      <h2 class="code-title">Python Source Code</h2>
+  <section class="content-card code-container">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <h2 class="page-title" style="margin:0; font-size:1.25rem;">Python Source Code</h2>
       <button class="copy-button" onclick="copyCode()">📋 Copy</button>
-      <pre id="codeBlock" class="code-block">
+    </div>
+    <pre id="codeBlock">
+
 def fake_sha256(n):
     n += 99991
     part1 = n * 1234567
     part2 = n ** 3
     part3 = n // 7  # Integer division: drops the decimal
     result = (part1 + part2 + part3) % 100000000  # Keep last 8 digits
-    return f'PT1: {part1},\\nPT2: {part2},\\nPT3: {part3},\\n(part1 + part2 + part3): {part1 + part2 + part3},\\nInput: {n},\\nANS: {result}'
+    return f"PT1: {part1},\nPT2: {part2},\nPT3: {part3},\n(part1 + part2 + part3): {part1 + part2 + part3},\nInput: {n},\nANS: {result}"
 
 inp = input("Enter the number: ")
 print(fake_sha256(inp))
-    </pre
+    </pre>
+  </section>
+
+  <script>
+    function fake_sha256(n) {
+      n = parseInt(n);
+      n += 99991;
+      const part1 = n * 1234567;
+      const part2 = Math.pow(n, 3);
+      const part3 = Math.floor(n / 7);
+      const sum = part1 + part2 + part3;
+      const result = sum % 100000000;
+      return "ANS: " + result;
+    }
+
+    function typeText(el, text, speed = 30) {
+      el.innerText = "";
+      let i = 0;
+      const interval = setInterval(() => {
+        el.innerText += text[i++];
+        if (i >= text.length) clearInterval(interval);
+      }, speed);
+    }
+
+    function calculate() {
+      const input = document.getElementById("numberInput").value;
+      const ansEl = document.getElementById("ans");
+      if (input.trim() === "") {
+        typeText(ansEl, "Please enter a number.");
+        return;
+      }
+      const result = fake_sha256(input);
+      typeText(ansEl, result);
+    }
+
+    function copyCode() {
+      const code = document.getElementById("codeBlock").innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const btn = document.querySelector(".copy-button");
+        btn.innerText = "✅ Copied";
+        setTimeout(() => (btn.innerText = "📋 Copy"), 1500);
+      });
+    }
+  </script>
+{% endblock %}
+        [(n + 99991) &times; 1234567 + (n + 99991)<sup>3</sup> + floor((n +
+        99991) &divide; 7)] mod 100000000
+      </div>
+    </div>
+
+    <section class="content-card code-container">
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        "
+      >
+        <h2 class="page-title" style="margin: 0; font-size: 1.25rem">
+          Python Source Code
+        </h2>
+        <button class="copy-button" onclick="copyCode()">📋 Copy</button>
+      </div>
+      <pre id="codeBlock">
+    def fake_sha256(n):
+        n += 99991
+        part1 = n * 1234567
+        part2 = n ** 3
+        part3 = n // 7  # Integer division: drops the decimal
+        result = (part1 + part2 + part3) % 100000000  # Keep last 8 digits
+        return f"PT1: {part1},\nPT2: {part2},\nPT3: {part3},\n(part1 + part2 + part3): {part1 + part2 + part3},\nInput: {n},\nANS: {result}"
+
+    inp = input("Enter the number: ")
+    print(fake_sha256(inp))
+        </pre
       >
     </section>
-
-    <footer
-      style="text-align: center; padding: 40px 0; font-size: 14px; color: #888"
-    >
-      &copy; 2025 <a href="https://sodeom.com" style="color: #aaa">Sodeom</a>.
-      All rights reserved.
-    </footer>
 
     <script>
       function fake_sha256(n) {
@@ -267,5 +206,6 @@ print(fake_sha256(inp))
         });
       }
     </script>
-  </body>
+    {% endblock %} function calculate() {
+  </head>
 </html>

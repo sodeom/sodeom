@@ -1,39 +1,48 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Sodi - Innovating the Future{% endblock %}</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Sodi - Private Search Engine{% endblock %}</title>
 
-  <link rel="icon" href="/favicon.ico" />
-  <!-- Link to your CSS file -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" href="/favicon.ico" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    {% block head_extra %}{% endblock %}
+  </head>
+  <body>
+    <header class="search-header">
+      <div class="container">
+        {% block header %}
+        <img src="/favicon.ico" alt="Sodi Logo" width="48" height="48" />
+        <h1>Sodi - Private Search Engine</h1>
+        <p>The best search engine that doesn't track you</p>
+        <nav>
+          <a href="/">Search</a> | <a href="/images">Images</a> |
+          <a href="/privacy-policy">Privacy</a> |
+          <a href="/contact">Contact</a>
+        </nav>
+        {% endblock %}
+      </div>
+    </header>
 
-</head>
-<body>
-  <!-- Header -->
-  <header>
-    <div class="container header-container">
-      <h1 class="company-name"><a href="/">Sodi</a></h1>
+    <main class="container">{% block content %}{% endblock %}</main>
+
+    <footer>
       <nav>
-        <ul>
-          <li><a href=/>Home</a></li>
-          <li><a href="/about">About</a></li>
-          <li><a href="{{ url_for('contact') }}">Contact</a></li>
-        </ul>
+        <a href="/privacy-policy">Privacy Policy</a>
+        <a href="/terms">Terms of Service</a>
+        <a href="/contact">Contact Us</a>
+        <a href="/about">About Private Search</a>
+        <a href="/services">All Services</a>
+        <a href="/urls">Urls</a>
       </nav>
-    </div>
-  </header>
-
-  <!-- Main Content -->
-  {% block content %}
-  {% endblock %}
-
-  <!-- Footer -->
-  <footer>
-    <div class="container">
-      <p>&copy; 2025 Sodi. All Rights Reserved.</p>
-    </div>
-  </footer>
-</body>
+      <p>
+        © 2025 Sodi Search Engine. The most private search engine for secure,
+        anonymous searching.
+      </p>
+    </footer>
+  </body>
 </html>

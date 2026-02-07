@@ -1,28 +1,24 @@
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>All Routes</title>
-        <meta name="robots" content="noindex">
-        <style>
-            body { font-family: sans-serif; max-width: 700px; margin: auto; padding: 2rem; background: #f4f4f4; }
-            h1 { font-size: 24px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { padding: 8px 12px; border-bottom: 1px solid #ddd; }
-            th { background-color: #f0f0f0; }
-            a { color: #007bff; text-decoration: none; }
-            a:hover { text-decoration: underline; }
-        </style>
-    </head>
-    <body>
-        <h1>All Flask Routes</h1>
-        <table>
-            <tr><th>Path</th><th>Methods</th></tr>
-            {% for url, methods in links %}
-            <tr>
-                <td><a href="{{ url }}">{{ url }}</a></td>
-                <td>{{ methods }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </body>
-    </html>
+{% extends "base.html" %} {% block title %}All Routes - Sodeom{% endblock %} {%
+block head_extra %}
+<meta name="robots" content="noindex" />
+{% endblock %} {% block content %}
+<div class="content-card">
+  <h1 class="page-title">All Flask Routes</h1>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Path</th>
+        <th>Methods</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for url, methods in links %}
+      <tr>
+        <td><a href="{{ url }}">{{ url }}</a></td>
+        <td>{{ methods }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
