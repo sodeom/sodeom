@@ -244,6 +244,16 @@ footer a {
   border-radius: 0.75rem;
 }
 
+.services-hero h1 {
+  margin: 0 0 0.5rem;
+  color: var(--brand);
+}
+
+.services-hero p {
+  color: var(--muted);
+  margin: 0;
+}
+
 .services-content {
   padding: 2rem 0;
 }
@@ -259,6 +269,16 @@ footer a {
   border: 1px solid #1f2937;
   border-radius: 0.75rem;
   padding: 1.25rem;
+}
+
+.service-card h2,
+.service-card h3 {
+  color: var(--brand);
+  margin-top: 0;
+}
+
+.service-card p {
+  color: var(--text);
 }
 
 .service-btn {
@@ -299,4 +319,32 @@ footer a {
   border: 1px solid #334155;
   background: #0b1220;
   color: var(--text);
+}
+
+/* Projects/Webs grids */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.project {
+  background: var(--surface);
+  border: 1px solid #1f2937;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.project img {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.project iframe {
+  width: 100%;
+  border: 0;
+  border-radius: 0.5rem;
+  background: #0b1220;
 }

@@ -1,40 +1,49 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block title %}Sodi AI - Innovating the Future{%
+endblock %} {% block content %}
+<!-- Services Hero Section -->
+<section class="services-hero">
+  <div class="container">
+    <h1 class="page-title">Our AI Tools</h1>
+    <p class="page-subtitle">
+      Quickly access and start using your AI-powered applications.
+    </p>
+  </div>
+</section>
 
-{% block title %}Sodi AI - Innovating the Future{% endblock %}
-
-{% block content %}
-  <!-- Services Hero Section -->
-  <section class="services-hero">
-    <div class="container">
-      <h1>Our AI's</h1>
-      <p>Quickly access and start using your AI-powered application.</p>
+<!-- Services Content Section -->
+<section class="services-content">
+  <div class="container grid-container">
+    <!-- Service Portion for Game Development -->
+    <div class="service-card">
+      <h2>Casual (LTS)</h2>
+      <p>
+        This version sometimes doesn't work as expected, but the responses are
+        still useful.
+      </p>
+      <a
+        href="https://myjarvispy.netlify.app/AI-answerer-main.exe"
+        class="btn service-btn"
+        >Download</a
+      >
     </div>
-  </section>
 
-  <!-- Services Content Section -->
-  <section class="services-content">
-    <div class="container grid-container">
-      <!-- Service Portion for Game Development -->
-      <div class="service-card">
-        <h2>Casual (LTS)</h2>
-        <p>This version sometimes doesn't work as expected, but the responses are still useful.</p>
-        <a href="https://myjarvispy.netlify.app/AI-answerer-main.exe" class="btn service-btn">Download</a>
-      </div>
-
-      <!-- Service Portion for App Development -->
-      <div class="service-card">
-        <h2>Latest</h2>
-        <p>This version is my favorite, although it occasionally has issues.</p>
-        <a href="https://myjarvispy.netlify.app/ai%20answerer.exe" class="btn service-btn">Download</a>
-      </div>
-
- <!-- Service Portion for App Development -->
-      <div class="service-card">
-        <h2>APIS</h2>
-        <p>Check out our free and no pay apis.</p>
-        <a href="https://sodeom.com/apis" class="btn service-btn">Try</a>
-      </div>
-
+    <!-- Service Portion for App Development -->
+    <div class="service-card">
+      <h2>Latest</h2>
+      <p>This version is my favorite, although it occasionally has issues.</p>
+      <a
+        href="https://myjarvispy.netlify.app/ai%20answerer.exe"
+        class="btn service-btn"
+        >Download</a
+      >
     </div>
-  </section>
+
+    <!-- Service Portion for App Development -->
+    <div class="service-card">
+      <h2>APIS</h2>
+      <p>Check out our free and no pay apis.</p>
+      <a href="https://sodeom.com/apis" class="btn service-btn">Try</a>
+    </div>
+  </div>
+</section>
 {% endblock %}
