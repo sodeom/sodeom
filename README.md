@@ -44,7 +44,7 @@
 
 ## What is Sodeom?
 
-**Sodeom** is a privacy-first, open-source search engine built with Python and Flask. It aggregates results from multiple search engines (DuckDuckGo, Bing, Brave, and Google) while acting as a proxy between you and those services — meaning **they never see your IP, cookies, or identity**. Only the Sodeom server communicates with external search providers.
+**Sodeom** is a privacy-first, open-source search engine built with Python and Flask. It aggregates results from multiple search engines (DuckDuckGo, Bing, and Brave) while acting as a proxy between you and those services — meaning **they never see your IP, cookies, or identity**. Only the Sodeom server communicates with external search providers.
 
 Founded in 2025 and built by **Abdul Hadi**, Sodeom is designed for users who want fast, relevant search results without sacrificing their privacy.
 
@@ -54,18 +54,18 @@ Founded in 2025 and built by **Abdul Hadi**, Sodeom is designed for users who wa
 
 ## Features
 
-| Feature                      | Description                                                                    |
-| ---------------------------- | ------------------------------------------------------------------------------ |
-| **Private by Design**        | Zero logging, no tracking cookies, no analytics, no user profiles              |
-| **Multi-Engine Aggregation** | Pulls results from DuckDuckGo, Bing, Brave, and Google with automatic fallback |
-| **Web Search**               | Full web search with pagination and binary-encoded query support               |
-| **Image Search**             | Aggregated image search across four engines with NSFW filtering                |
-| **Placeholder Image API**    | Fetch and serve images by keyword — great for prototyping and development      |
-| **Search API**               | JSON REST API for programmatic access to search results                        |
-| **Adult Content Filtering**  | Built-in keyword-based filter blocks NSFW results automatically                |
-| **Self-Hostable**            | Run your own private instance on any server                                    |
-| **Open Source**              | Licensed under GPLv3 — fully auditable and transparent                         |
-| **Security Headers**         | DNT, no-referrer, FLoC blocking, X-Frame-Options, and more on every response   |
+| Feature                      | Description                                                                  |
+| ---------------------------- | ---------------------------------------------------------------------------- |
+| **Private by Design**        | Zero logging, no tracking cookies, no analytics, no user profiles            |
+| **Multi-Engine Aggregation** | Pulls results from DuckDuckGo, Bing, and Brave with automatic fallback       |
+| **Web Search**               | Full web search with pagination and binary-encoded query support             |
+| **Image Search**             | Aggregated image search across three engines with NSFW filtering             |
+| **Placeholder Image API**    | Fetch and serve images by keyword — great for prototyping and development    |
+| **Search API**               | JSON REST API for programmatic access to search results                      |
+| **Adult Content Filtering**  | Built-in keyword-based filter blocks NSFW results automatically              |
+| **Self-Hostable**            | Run your own private instance on any server                                  |
+| **Open Source**              | Licensed under GPLv3 — fully auditable and transparent                       |
+| **Security Headers**         | DNT, no-referrer, FLoC blocking, X-Frame-Options, and more on every response |
 
 ---
 
@@ -103,9 +103,9 @@ Sodeom takes a **zero-knowledge** approach to search:
 ┌─────────────┐         ┌───────────────────┐         ┌──────────────────┐
 │   Browser   │ ──────► │   Sodeom Server   │ ──────► │  DuckDuckGo      │
 │  (You)      │ ◄────── │   (Flask/Python)  │ ◄────── │  Bing            │
-└─────────────┘         │                   │         │  Google          │
-                        │  - Proxy Layer    │         │  Brave           │
-                        │  - NSFW Filter    │         └──────────────────┘
+└─────────────┘         │                   │         │  Brave           │
+                        │  - Proxy Layer    │         └──────────────────┘
+                        │  - NSFW Filter    │
                         │  - Privacy Headers│
                         └───────────────────┘
 ```
@@ -207,7 +207,7 @@ Search for images across multiple engines.
 | `q`       | string | Yes      | Image search query         |
 | `page`    | int    | No       | Page number (default: `1`) |
 
-Returns an HTML page with image results. Images are fetched from DuckDuckGo → Bing → Google → Brave with automatic fallback.
+Returns an HTML page with image results. Images are fetched from DuckDuckGo → Bing → Brave with automatic fallback.
 
 ---
 
@@ -315,7 +315,7 @@ Sodeom uses a **multi-engine aggregation** strategy with automatic fallback:
 ### Image Search Pipeline
 
 1. **Query received** → User searches for images
-2. **Cascading fallback** → Engines are tried in order: DuckDuckGo → Bing → Google → Brave
+2. **Cascading fallback** → Engines are tried in order: DuckDuckGo → Bing → Brave
 3. **NSFW filtering** → Image URLs containing adult keywords are excluded
 4. **First success wins** → The first engine to return safe results is used
 
@@ -325,7 +325,6 @@ Sodeom uses a **multi-engine aggregation** strategy with automatic fallback:
 | -------------- | ------------ | ------------ | -------------------------------------- |
 | **DuckDuckGo** | ✅ Primary   | ✅ Primary   | HTML scraping (web), JSON API (images) |
 | **Bing**       | ✅ Primary   | ✅ Fallback  | HTML scraping                          |
-| **Google**     | ❌           | ✅ Fallback  | Regex on inline JSON                   |
 | **Brave**      | ✅ Available | ✅ Fallback  | HTML scraping (web), JSON API (images) |
 
 ---

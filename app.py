@@ -202,24 +202,6 @@ def fetch_all_bing_images(query, page=1):
         return []
 
 
-def fetch_all_google_images(query, page=1):
-    """Extract .jpg URLs from Google's inline JSON callbacks."""
-    try:
-        params = {"q": query, "tbm": "isch", "ijn": page - 1}
-
-        resp = requests.get(
-            "https://www.google.com/search", headers=HEADERS, params=params, timeout=10
-        )
-        blocks = re.findall(r"AF_initDataCallback\(([^<]+)\);", resp.text)
-        imgs = []
-        for b in blocks:
-            imgs += re.findall(r'\["(https?://[^"]+?\.jpg)"', b)
-        return imgs
-    except Exception as e:
-        print(f"Error fetching Google images: {e}")
-        return []
-
-
 def fetch_all_brave_images(query, page=1):
     """Use Brave's public image JSON endpoint (no key)."""
     try:
@@ -239,7 +221,7 @@ def fetch_all_brave_images(query, page=1):
 
 
 def fetch_images_with_fallback(query, page=1):
-    """Try DuckDuckGo → Bing → Google → Brave for images, filtering NSFW results."""
+    """Try DuckDuckGo → Bing → Brave for images, filtering NSFW results."""
 
     def is_safe(img_url):
         if not img_url:
@@ -251,7 +233,6 @@ def fetch_images_with_fallback(query, page=1):
     image_functions = [
         (fetch_all_duckduckgo_images, "DuckDuckGo"),
         (fetch_all_bing_images, "Bing"),
-        (fetch_all_google_images, "Google"),
         (fetch_all_brave_images, "Brave"),
     ]
 
