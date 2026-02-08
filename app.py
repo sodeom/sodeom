@@ -53,11 +53,11 @@ from openai import OpenAI
 
 dotenv.load_dotenv()
 
-# NOTE: AI features disabled for privacy. No GitHub API calls are made.
-# GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
-# GITHUB_ENDPOINT = "https://models.github.ai/inference"
-# DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "openai/gpt-4.1-mini")
-# client = OpenAI(base_url=GITHUB_ENDPOINT, api_key=GITHUB_TOKEN)
+# AI features enabled via GitHub Models API
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+GITHUB_ENDPOINT = "https://models.github.ai/inference"
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gpt-4o-mini")
+client = OpenAI(base_url=GITHUB_ENDPOINT, api_key=GITHUB_TOKEN)
 
 
 def install_image(url: str, base_dir="placeholders") -> str | None:
@@ -103,12 +103,24 @@ def utf8_string_to_binary(input_str: str) -> str:
 
 @app.route("/ai", methods=["GET", "POST"])
 def query_ai():
-    # Privacy-first: AI features disabled. No external API calls made.
-    return jsonify(
-        {
-            "error": "AI features are disabled in this private instance to ensure no data leaves the server."
-        }
-    ), 503
+    if request.method == "GET":
+        return render_template("ai.html")
+
+    try:
+        user_message = request.json.get("message", "")
+        if not user_message:
+            return jsonify({"error": "No message provided"}), 400
+
+        response = client.chat.completions.create(
+            model=DEFAULT_MODEL,
+            messages=[{"role": "user", "content": user_message}],
+            max_tokens=1000,
+            temperature=0.7,
+        )
+
+        return jsonify({"response": response.choices[0].message.content})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 def binary_to_utf8_string(binary_str: str) -> str:
