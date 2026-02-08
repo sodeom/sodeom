@@ -179,6 +179,65 @@ footer {
 footer a {
   margin: 0 0.5rem;
 }
+
+@media (max-width: 768px) {
+  header.search-header {
+    padding: 1.5rem 1rem;
+  }
+
+  header h1 {
+    font-size: 1.6rem;
+    line-height: 1.25;
+  }
+
+  header.search-header p {
+    font-size: 0.95rem;
+  }
+
+  .search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .search-form input {
+    width: 100%;
+    margin-right: 0;
+    font-size: 1rem;
+  }
+
+  .search-form .btn-primary {
+    width: 100%;
+    min-height: 44px;
+    font-size: 1rem;
+  }
+
+  .feature-grid {
+    gap: 1.25rem;
+  }
+
+  .feature-card p {
+    line-height: 1.7;
+  }
+
+  .search-nav a {
+    display: inline-block;
+    padding: 0.35rem 0.25rem;
+  }
+
+  footer nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem 0.9rem;
+  }
+
+  footer a {
+    display: inline-block;
+    padding: 0.35rem 0.2rem;
+  }
+}
 /* Results list styling */
 .results-list {
   list-style: none;
