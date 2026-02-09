@@ -105,6 +105,25 @@ a:hover {
   border-radius: 0.75rem;
   padding: 1.5rem 1.75rem;
 }
+.api-doc-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin: 0.5rem 0 1.25rem;
+}
+.api-doc-nav a {
+  display: inline-block;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid #1f2937;
+  border-radius: 999px;
+  background: #0f172a;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+.api-doc-nav a:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
 .content-card h2 {
   color: var(--brand);
   margin-top: 1.5rem;

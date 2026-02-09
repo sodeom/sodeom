@@ -1,0 +1,87 @@
+{% extends "base.html" %} {% block title %}Sodeom API: Root Search Page{%
+endblock %} {% block content %}
+<div class="content-card">
+  <h1 class="page-title">/ (Search page HTML)</h1>
+  <nav class="api-doc-nav" aria-label="API documentation">
+    <a href="/apis">Overview</a>
+    <a href="/apis/root">/</a>
+    <a href="/apis/search">/api/search</a>
+    <a href="/apis/images">/images</a>
+    <a href="/apis/placeholder">/placeholder</a>
+    <a href="/apis/ai">/ai</a>
+    <a href="/apis/wiki">/wiki</a>
+    <a href="/apis/routes">Routes</a>
+  </nav>
+  <p class="page-subtitle">
+    HTML search page with query parsing and pagination.
+  </p>
+
+  <section>
+    <h2>Method</h2>
+    <p><code>GET</code></p>
+  </section>
+
+  <section>
+    <h2>Query parameters</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Type</th>
+          <th>Default</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>q</code></td>
+          <td>string</td>
+          <td>""</td>
+          <td>Search query text.</td>
+        </tr>
+        <tr>
+          <td><code>page</code></td>
+          <td>integer</td>
+          <td>1</td>
+          <td>Pagination page (minimum 1).</td>
+        </tr>
+        <tr>
+          <td><code>b</code></td>
+          <td>binary string</td>
+          <td>""</td>
+          <td>
+            Optional binary-encoded version of <code>q</code>. If
+            <code>b</code> is present and <code>q</code> is empty, the server
+            decodes it and redirects. If <code>q</code> is present and
+            <code>b</code> is empty, the server encodes and redirects.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Behavior</h2>
+    <ol>
+      <li>Normalizes <code>page</code> to at least 1.</li>
+      <li>
+        Handles <code>q</code>/<code>b</code> redirects for binary queries.
+      </li>
+      <li>Calls <code>main(q, page)</code> to fetch results.</li>
+      <li>
+        Renders <code>index.html</code> with results and pagination flags.
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Example</h2>
+    <pre>GET /?q=python+flask&page=1</pre>
+  </section>
+
+  <section>
+    <h2>Related</h2>
+    <p>JSON API: <a href="/apis/search">/api/search</a></p>
+  </section>
+</div>
+{% endblock %}

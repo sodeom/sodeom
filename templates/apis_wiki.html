@@ -1,0 +1,55 @@
+{% extends "base.html" %} {% block title %}Sodeom API: /wiki/{query}{% endblock
+%} {% block content %}
+<div class="content-card">
+  <h1 class="page-title">/wiki/&lt;query&gt;</h1>
+  <nav class="api-doc-nav" aria-label="API documentation">
+    <a href="/apis">Overview</a>
+    <a href="/apis/root">/</a>
+    <a href="/apis/search">/api/search</a>
+    <a href="/apis/images">/images</a>
+    <a href="/apis/placeholder">/placeholder</a>
+    <a href="/apis/ai">/ai</a>
+    <a href="/apis/wiki">/wiki</a>
+    <a href="/apis/routes">Routes</a>
+  </nav>
+  <p class="page-subtitle">Wiki lookup page (currently placeholder).</p>
+
+  <section>
+    <h2>Method</h2>
+    <p><code>GET</code></p>
+  </section>
+
+  <section>
+    <h2>Path parameter</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>query</code></td>
+          <td>string</td>
+          <td>The search term to look up.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Behavior</h2>
+    <p>
+      The current implementation renders a static placeholder message. This
+      endpoint is reserved for a future wiki integration.
+    </p>
+  </section>
+
+  <section>
+    <h2>Example</h2>
+    <pre>GET /wiki/privacy</pre>
+  </section>
+</div>
+{% endblock %}

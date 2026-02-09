@@ -1,0 +1,64 @@
+{% extends "base.html" %} {% block title %}Sodeom API: /images{% endblock %} {%
+block content %}
+<div class="content-card">
+  <h1 class="page-title">/images (Images HTML)</h1>
+  <nav class="api-doc-nav" aria-label="API documentation">
+    <a href="/apis">Overview</a>
+    <a href="/apis/root">/</a>
+    <a href="/apis/search">/api/search</a>
+    <a href="/apis/images">/images</a>
+    <a href="/apis/placeholder">/placeholder</a>
+    <a href="/apis/ai">/ai</a>
+    <a href="/apis/wiki">/wiki</a>
+    <a href="/apis/routes">Routes</a>
+  </nav>
+  <p class="page-subtitle">HTML images page with multi-engine fallback.</p>
+
+  <section>
+    <h2>Method</h2>
+    <p><code>GET</code></p>
+  </section>
+
+  <section>
+    <h2>Query parameters</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Type</th>
+          <th>Required</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>q</code></td>
+          <td>string</td>
+          <td>no</td>
+          <td>Image search query.</td>
+        </tr>
+        <tr>
+          <td><code>page</code></td>
+          <td>integer</td>
+          <td>no</td>
+          <td>Pagination page (default 1, minimum 1).</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Behavior</h2>
+    <ul>
+      <li>If <code>q</code> is empty, the page renders with no results.</li>
+      <li>When <code>q</code> is set, the server calls the fallback chain.</li>
+      <li>Sources: DuckDuckGo, Bing, then Brave.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Example</h2>
+    <pre>GET /images?q=kitten&page=1</pre>
+  </section>
+</div>
+{% endblock %}

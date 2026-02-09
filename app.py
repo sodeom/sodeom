@@ -510,6 +510,41 @@ def apis():
     return render_template("apis.html")
 
 
+@app.route("/apis/root")
+def apis_root():
+    return render_template("apis_root.html")
+
+
+@app.route("/apis/search")
+def apis_search():
+    return render_template("apis_search.html")
+
+
+@app.route("/apis/ai")
+def apis_ai():
+    return render_template("apis_ai.html")
+
+
+@app.route("/apis/images")
+def apis_images():
+    return render_template("apis_images.html")
+
+
+@app.route("/apis/placeholder")
+def apis_placeholder():
+    return render_template("apis_placeholder.html")
+
+
+@app.route("/apis/wiki")
+def apis_wiki():
+    return render_template("apis_wiki.html")
+
+
+@app.route("/apis/routes")
+def apis_routes():
+    return render_template("apis_routes.html")
+
+
 @app.route("/robots.txt")
 def robots():
     return render_template("robots.txt")

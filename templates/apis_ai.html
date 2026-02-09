@@ -1,0 +1,89 @@
+{% extends "base.html" %} {% block title %}Sodeom API: /ai{% endblock %} {%
+block content %}
+<div class="content-card">
+  <h1 class="page-title">/ai (AI chat proxy)</h1>
+  <nav class="api-doc-nav" aria-label="API documentation">
+    <a href="/apis">Overview</a>
+    <a href="/apis/root">/</a>
+    <a href="/apis/search">/api/search</a>
+    <a href="/apis/images">/images</a>
+    <a href="/apis/placeholder">/placeholder</a>
+    <a href="/apis/ai">/ai</a>
+    <a href="/apis/wiki">/wiki</a>
+    <a href="/apis/routes">Routes</a>
+  </nav>
+  <p class="page-subtitle">
+    Proxy to an OpenAI-compatible API via GitHub Models.
+  </p>
+
+  <section>
+    <h2>Methods</h2>
+    <p><code>GET</code>, <code>POST</code></p>
+  </section>
+
+  <section>
+    <h2>GET behavior</h2>
+    <p>Returns the HTML page at <code>ai.html</code>.</p>
+  </section>
+
+  <section>
+    <h2>POST request body</h2>
+    <p>Content-Type: <code>application/json</code></p>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Type</th>
+          <th>Required</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>message</code></td>
+          <td>string</td>
+          <td>yes</td>
+          <td>User prompt text.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Response</h2>
+    <pre>
+{
+  "response": "...generated text..."
+}</pre
+    >
+  </section>
+
+  <section>
+    <h2>Errors</h2>
+    <ul>
+      <li><code>400</code> Missing or empty <code>message</code>.</li>
+      <li><code>500</code> Upstream API error.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Example</h2>
+    <pre>
+curl -X POST "https://sodeom.com/ai" \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Say hi"}'</pre
+    >
+  </section>
+
+  <section>
+    <h2>Notes</h2>
+    <ul>
+      <li>Requires <code>GITHUB_TOKEN</code> on the server.</li>
+      <li>
+        Default model: <code>gpt-4o-mini</code> unless overridden in server
+        config.
+      </li>
+    </ul>
+  </section>
+</div>
+{% endblock %}

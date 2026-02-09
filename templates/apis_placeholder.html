@@ -1,0 +1,76 @@
+{% extends "base.html" %} {% block title %}Sodeom API: /placeholder{% endblock
+%} {% block content %}
+<div class="content-card">
+  <h1 class="page-title">/placeholder and /placeholder/url</h1>
+  <nav class="api-doc-nav" aria-label="API documentation">
+    <a href="/apis">Overview</a>
+    <a href="/apis/root">/</a>
+    <a href="/apis/search">/api/search</a>
+    <a href="/apis/images">/images</a>
+    <a href="/apis/placeholder">/placeholder</a>
+    <a href="/apis/ai">/ai</a>
+    <a href="/apis/wiki">/wiki</a>
+    <a href="/apis/routes">Routes</a>
+  </nav>
+  <p class="page-subtitle">Downloadable placeholder images with caching.</p>
+
+  <section>
+    <h2>Methods</h2>
+    <p><code>GET</code></p>
+  </section>
+
+  <section>
+    <h2>Endpoints</h2>
+    <ul>
+      <li><code>/placeholder</code> returns a binary image.</li>
+      <li><code>/placeholder/url</code> returns a plain text image URL.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Query parameters</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Type</th>
+          <th>Required</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>q</code></td>
+          <td>string</td>
+          <td>yes</td>
+          <td>Image keyword (for example: mountain).</td>
+        </tr>
+        <tr>
+          <td><code>page</code></td>
+          <td>integer</td>
+          <td>no</td>
+          <td>Pagination page (default 1, minimum 1).</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Behavior</h2>
+    <ul>
+      <li>Uses the same image fallback chain as <code>/images</code>.</li>
+      <li>
+        Downloads and caches images in <code>placeholders/</code> by SHA1 hash.
+      </li>
+      <li>If no image is found, serves <code>static/not-found.png</code>.</li>
+      <li>If <code>q</code> is missing, renders the placeholder help page.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Examples</h2>
+    <pre>GET /placeholder?q=mountain</pre>
+    <pre>GET /placeholder/url?q=mountain</pre>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %} {% block title %}Sodeom API: Public Routes{% endblock
+%} {% block content %}
+<div class="content-card">
+  <h1 class="page-title">Public routes</h1>
+  <nav class="api-doc-nav" aria-label="API documentation">
+    <a href="/apis">Overview</a>
+    <a href="/apis/root">/</a>
+    <a href="/apis/search">/api/search</a>
+    <a href="/apis/images">/images</a>
+    <a href="/apis/placeholder">/placeholder</a>
+    <a href="/apis/ai">/ai</a>
+    <a href="/apis/wiki">/wiki</a>
+    <a href="/apis/routes">Routes</a>
+  </nav>
+  <p class="page-subtitle">High-level map of HTML pages and utilities.</p>
+
+  <section>
+    <h2>Static and informational pages</h2>
+    <ul>
+      <li>
+        <code>/about</code>, <code>/contact</code>, <code>/faq</code>,
+        <code>/terms</code>, <code>/privacy-policy</code>
+      </li>
+      <li><code>/services</code> and related service pages</li>
+      <li><code>/projects</code>, <code>/funprojects</code></li>
+      <li><code>/blog/&lt;blog&gt;</code> (rendered from templates)</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Utilities</h2>
+    <ul>
+      <li><code>/urls</code> lists all routes dynamically.</li>
+      <li>
+        <code>/robots.txt</code> and <code>/sitemap.xml</code> for crawlers.
+      </li>
+      <li><code>/favicon.ico</code>, <code>/ads.txt</code></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Live list</h2>
+    <p>For the full, current list, visit <a href="/urls">/urls</a>.</p>
+  </section>
+</div>
+{% endblock %}

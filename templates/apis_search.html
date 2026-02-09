@@ -1,0 +1,79 @@
+{% extends "base.html" %} {% block title %}Sodeom API: /api/search{% endblock %}
+{% block content %}
+<div class="content-card">
+  <h1 class="page-title">/api/search (JSON search API)</h1>
+  <nav class="api-doc-nav" aria-label="API documentation">
+    <a href="/apis">Overview</a>
+    <a href="/apis/root">/</a>
+    <a href="/apis/search">/api/search</a>
+    <a href="/apis/images">/images</a>
+    <a href="/apis/placeholder">/placeholder</a>
+    <a href="/apis/ai">/ai</a>
+    <a href="/apis/wiki">/wiki</a>
+    <a href="/apis/routes">Routes</a>
+  </nav>
+  <p class="page-subtitle">Returns JSON-formatted search results.</p>
+
+  <section>
+    <h2>Method</h2>
+    <p><code>GET</code></p>
+  </section>
+
+  <section>
+    <h2>Query parameters</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Type</th>
+          <th>Required</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>q</code></td>
+          <td>string</td>
+          <td>yes</td>
+          <td>Search query text.</td>
+        </tr>
+        <tr>
+          <td><code>page</code></td>
+          <td>integer</td>
+          <td>no</td>
+          <td>Pagination page (default 1, minimum 1).</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Response</h2>
+    <pre>
+{
+  "results": [
+    {"title": "...", "link": "...", "description": "..."}
+  ],
+  "query": "example",
+  "page": 1,
+  "has_next": true,
+  "has_prev": false,
+  "total_results": 10
+}</pre
+    >
+  </section>
+
+  <section>
+    <h2>Errors</h2>
+    <ul>
+      <li><code>400</code> Missing <code>q</code> parameter.</li>
+      <li><code>500</code> Search provider or parsing errors.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Example</h2>
+    <pre>curl "https://sodeom.com/api/search?q=privacy+search&page=1"</pre>
+  </section>
+</div>
+{% endblock %}
