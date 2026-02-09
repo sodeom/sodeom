@@ -103,46 +103,26 @@ def utf8_string_to_binary(input_str: str) -> str:
 
 @app.route("/ai", methods=["GET", "POST"])
 def query_ai():
-    if request.method == "GET":
-        user_message = request.args.get("message", "").strip()
-        if not user_message:
-            return jsonify(
-                {
-                    "message": 'Use POST with JSON body: {"message": "..."} to get a response, or GET with ?message=... .',
-                    "example": {
-                        "method": "POST",
-                        "content_type": "application/json",
-                        "body": {"message": "Hello"},
-                    },
-                    "example_get": "GET /ai?message=Hello",
-                }
-            )
+    query = request.args.get("query", "").strip()
+    if not query:
+        return jsonify({"error": "No query provided"}), 400
 
-        try:
-            response = client.chat.completions.create(
-                model=DEFAULT_MODEL,
-                messages=[{"role": "user", "content": user_message}],
-                max_tokens=1000,
-                temperature=0.7,
-            )
-            return jsonify({"response": response.choices[0].message.content})
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+    other_params = request.get_json(silent=True) or {}
+
+    model = other_params.get("model", DEFAULT_MODEL)
+
+    if "messages" not in other_params:
+        other_params["messages"] = [
+            {"role": "system", "content": ""},
+            {"role": "user", "content": query},
+        ]
+
+    other_params["model"] = model
 
     try:
-        payload = request.get_json(silent=True) or {}
-        user_message = payload.get("message", "")
-        if not user_message:
-            return jsonify({"error": "No message provided"}), 400
-
-        response = client.chat.completions.create(
-            model=DEFAULT_MODEL,
-            messages=[{"role": "user", "content": user_message}],
-            max_tokens=1000,
-            temperature=0.7,
-        )
-
-        return jsonify({"response": response.choices[0].message.content})
+        response = client.chat.completions.create(**other_params)
+        answer = response.choices[0].message.content
+        return jsonify({"answer": answer})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
