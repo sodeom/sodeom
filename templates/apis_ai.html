@@ -22,12 +22,29 @@ block content %}
   </section>
 
   <section>
-    <h2>GET behavior</h2>
-    <p>Returns the HTML page at <code>ai.html</code>.</p>
+    <h2>Query parameter</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Type</th>
+          <th>Required</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>query</code></td>
+          <td>string</td>
+          <td>required if no <code>messages</code> provided</td>
+          <td>Simple prompt text used to build messages.</td>
+        </tr>
+      </tbody>
+    </table>
   </section>
 
   <section>
-    <h2>POST request body</h2>
+    <h2>JSON request body (pass-through)</h2>
     <p>Content-Type: <code>application/json</code></p>
     <table class="table">
       <thead>
@@ -40,10 +57,28 @@ block content %}
       </thead>
       <tbody>
         <tr>
-          <td><code>message</code></td>
+          <td><code>messages</code></td>
+          <td>array</td>
+          <td>required if no <code>query</code> provided</td>
+          <td>Chat history array passed to the model.</td>
+        </tr>
+        <tr>
+          <td><code>model</code></td>
           <td>string</td>
-          <td>yes</td>
-          <td>User prompt text.</td>
+          <td>no</td>
+          <td>Overrides the default model.</td>
+        </tr>
+        <tr>
+          <td><code>temperature</code></td>
+          <td>number</td>
+          <td>no</td>
+          <td>Sampling temperature passed through to the model.</td>
+        </tr>
+        <tr>
+          <td><code>max_tokens</code></td>
+          <td>integer</td>
+          <td>no</td>
+          <td>Maximum tokens for the response.</td>
         </tr>
       </tbody>
     </table>
@@ -53,7 +88,7 @@ block content %}
     <h2>Response</h2>
     <pre>
 {
-  "response": "...generated text..."
+  "answer": "...generated text..."
 }</pre
     >
   </section>
@@ -61,7 +96,9 @@ block content %}
   <section>
     <h2>Errors</h2>
     <ul>
-      <li><code>400</code> Missing or empty <code>message</code>.</li>
+      <li>
+        <code>400</code> Missing <code>query</code> and <code>messages</code>.
+      </li>
       <li><code>500</code> Upstream API error.</li>
     </ul>
   </section>
@@ -69,9 +106,11 @@ block content %}
   <section>
     <h2>Example</h2>
     <pre>
+curl -G "https://sodeom.com/ai" --data-urlencode "query=Say hi"
+
 curl -X POST "https://sodeom.com/ai" \
   -H "Content-Type: application/json" \
-  -d '{"message":"Say hi"}'</pre
+  -d '{"model":"gpt-4o-mini","messages":[{"role":"user","content":"Say hi"}],"temperature":0.7}'</pre
     >
   </section>
 
