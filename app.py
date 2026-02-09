@@ -104,16 +104,30 @@ def utf8_string_to_binary(input_str: str) -> str:
 @app.route("/ai", methods=["GET", "POST"])
 def query_ai():
     if request.method == "GET":
-        return jsonify(
-            {
-                "message": 'Use POST with JSON body: {"message": "..."} to get a response.',
-                "example": {
-                    "method": "POST",
-                    "content_type": "application/json",
-                    "body": {"message": "Hello"},
-                },
-            }
-        )
+        user_message = request.args.get("message", "").strip()
+        if not user_message:
+            return jsonify(
+                {
+                    "message": 'Use POST with JSON body: {"message": "..."} to get a response, or GET with ?message=... .',
+                    "example": {
+                        "method": "POST",
+                        "content_type": "application/json",
+                        "body": {"message": "Hello"},
+                    },
+                    "example_get": "GET /ai?message=Hello",
+                }
+            )
+
+        try:
+            response = client.chat.completions.create(
+                model=DEFAULT_MODEL,
+                messages=[{"role": "user", "content": user_message}],
+                max_tokens=1000,
+                temperature=0.7,
+            )
+            return jsonify({"response": response.choices[0].message.content})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
     try:
         payload = request.get_json(silent=True) or {}
