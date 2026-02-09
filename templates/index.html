@@ -81,16 +81,26 @@ endblock %} {% block head_extra %}
   <a class="btn btn-outline-light" href="https://sodeom.com/">Secure Search</a>
 </nav>
 
-<form class="search-form" method="GET" role="search">
+<form class="search-form" method="GET" role="search" data-search-form>
   <input
     type="text"
     name="q"
     placeholder="Search the web without tracking..."
     value="{{ query }}"
+    maxlength="400"
+    autocapitalize="none"
+    autocomplete="off"
     required
   />
-  <button class="btn-primary" type="submit">Search Privately</button>
+  <button class="btn-primary" type="submit" data-search-submit>
+    Search Privately
+  </button>
+  <span class="loading-indicator" data-loading hidden>Searching...</span>
 </form>
+
+<p class="form-error" data-search-error aria-live="polite">
+  {% if query_error %}{{ query_error }}{% endif %}
+</p>
 
 {% if query %}
 <nav class="search-nav">
@@ -164,4 +174,36 @@ endblock %} {% block head_extra %}
     </p>
   </div>
 </div>
+
+<script>
+  (function () {
+    var form = document.querySelector("[data-search-form]");
+    var input = form ? form.querySelector("input[name='q']") : null;
+    var submit = document.querySelector("[data-search-submit]");
+    var loading = document.querySelector("[data-loading]");
+    var error = document.querySelector("[data-search-error]");
+
+    if (!form || !input || !submit || !loading || !error) {
+      return;
+    }
+
+    function showError(message) {
+      error.textContent = message;
+    }
+
+    form.addEventListener("submit", function (event) {
+      var value = input.value.trim();
+      if (!value) {
+        event.preventDefault();
+        showError("Please enter a search query.");
+        input.focus();
+        return;
+      }
+
+      showError("");
+      submit.disabled = true;
+      loading.hidden = false;
+    });
+  })();
+</script>
 {% endblock %}

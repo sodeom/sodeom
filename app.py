@@ -264,6 +264,12 @@ def index():
     b = request.args.get("b", "")
     page = request.args.get("page", 1, type=int)
 
+    query_error = ""
+    if isinstance(q, str):
+        q = q.strip()
+        if q == "" and request.args.get("q") is not None:
+            query_error = "Please enter a search query."
+
     # Ensure page is at least 1
     if page < 1:
         page = 1
@@ -283,8 +289,13 @@ def index():
     results = []
     total_results = 0
     if q:
-        results = main(q, page)
-        total_results = len(results)
+        try:
+            results = main(q, page)
+            total_results = len(results)
+        except Exception:
+            query_error = "Search temporarily unavailable. Please try again."
+            results = []
+            total_results = 0
 
     # Calculate pagination info
     has_next = (
@@ -296,6 +307,7 @@ def index():
         "index.html",
         results=results,
         query=q,
+        query_error=query_error,
         page=page,
         b=b,
         has_next=has_next,
