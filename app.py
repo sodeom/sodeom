@@ -104,20 +104,19 @@ def utf8_string_to_binary(input_str: str) -> str:
 @app.route("/ai", methods=["GET", "POST"])
 def query_ai():
     query = request.args.get("query", "").strip()
-    if not query:
-        return jsonify({"error": "No query provided"}), 400
-
     other_params = request.get_json(silent=True) or {}
 
-    model = other_params.get("model", DEFAULT_MODEL)
+    if not query and "messages" not in other_params:
+        return jsonify({"error": "No query or messages provided"}), 400
+
+    if "model" not in other_params:
+        other_params["model"] = DEFAULT_MODEL
 
     if "messages" not in other_params:
         other_params["messages"] = [
             {"role": "system", "content": ""},
             {"role": "user", "content": query},
         ]
-
-    other_params["model"] = model
 
     try:
         response = client.chat.completions.create(**other_params)
