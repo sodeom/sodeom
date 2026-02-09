@@ -104,10 +104,20 @@ def utf8_string_to_binary(input_str: str) -> str:
 @app.route("/ai", methods=["GET", "POST"])
 def query_ai():
     if request.method == "GET":
-        return render_template("ai.html")
+        return jsonify(
+            {
+                "message": 'Use POST with JSON body: {"message": "..."} to get a response.',
+                "example": {
+                    "method": "POST",
+                    "content_type": "application/json",
+                    "body": {"message": "Hello"},
+                },
+            }
+        )
 
     try:
-        user_message = request.json.get("message", "")
+        payload = request.get_json(silent=True) or {}
+        user_message = payload.get("message", "")
         if not user_message:
             return jsonify({"error": "No message provided"}), 400
 
