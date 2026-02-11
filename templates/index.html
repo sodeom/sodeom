@@ -73,6 +73,9 @@ endblock %} {% block head_extra %}
 <img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
 <h1>Sodeom - Private Search Engine</h1>
 <p>Private search with zero tracking and minimal filtering.</p>
+<p class="hero-clarity">
+  Search the web without tracking, profiling, or personalized filtering.
+</p>
 
 <nav class="product-nav" aria-label="Sodeom products">
   <a class="btn btn-outline-light" href="https://mail.sodeom.com/"
@@ -81,7 +84,7 @@ endblock %} {% block head_extra %}
   <a class="btn btn-outline-light" href="https://sodeom.com/">Secure Search</a>
 </nav>
 
-<form class="search-form" method="GET" role="search" data-search-form>
+<form class="search-form" method="GET" role="search" data-search-form="">
   <input
     type="text"
     name="q"
@@ -98,9 +101,20 @@ endblock %} {% block head_extra %}
   <span class="loading-indicator" data-loading hidden>Searching...</span>
 </form>
 
+<p class="trust-line">No cookies used. No user profiles stored.</p>
+
 <p class="form-error" data-search-error aria-live="polite">
   {% if query_error %}{{ query_error }}{% endif %}
 </p>
+
+<section class="how-it-works">
+  <h2>How Sodeom Works</h2>
+  <ol>
+    <li>You enter a search query</li>
+    <li>We fetch results from multiple sources</li>
+    <li>No tracking. No profiling. No behavior storage.</li>
+  </ol>
+</section>
 
 {% if query %}
 <nav class="search-nav">
@@ -129,10 +143,7 @@ endblock %} {% block head_extra %}
     <small class="description-small">{{ result.description }}</small>
   </li>
   {% endfor %} {% else %}
-  <li>
-    No results found for "{{ query }}". Try different keywords for better
-    private search results.
-  </li>
+  <li>No results found. Try different keywords or simplify your query.</li>
   {% endif %}
 </ul>
 {% endif %}

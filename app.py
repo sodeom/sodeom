@@ -35,6 +35,25 @@ def add_privacy_headers(response):
     # Don't cache search queries on the server
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, private"
     response.headers["Pragma"] = "no-cache"
+
+    cacheable_exts = (
+        ".css",
+        ".js",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".webp",
+        ".svg",
+        ".ico",
+        ".woff",
+        ".woff2",
+        ".ttf",
+        ".otf",
+        ".webmanifest",
+    )
+    if request.path.startswith("/static/") or request.path.endswith(cacheable_exts):
+        response.headers["Cache-Control"] = "public, max-age=604800, immutable"
+        response.headers.pop("Pragma", None)
     return response
 
 

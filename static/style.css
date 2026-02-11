@@ -40,6 +40,11 @@ header.search-header {
 header h1 {
   color: var(--brand);
 }
+.hero-clarity {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+}
 a {
   color: var(--brand);
   text-decoration: none;
@@ -94,6 +99,11 @@ a:hover {
   min-height: 1.25rem;
   margin: 0.5rem 0 0;
   color: #fca5a5;
+  font-size: 0.95rem;
+}
+.trust-line {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
   font-size: 0.95rem;
 }
 .loading-indicator {
@@ -204,6 +214,22 @@ pre {
   background: var(--surface);
   padding: 1.5rem;
   border-radius: 0.5rem;
+}
+.how-it-works {
+  background: var(--surface);
+  border: 1px solid #1f2937;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin: 1.5rem 0 0;
+}
+.how-it-works h2 {
+  color: var(--brand);
+  margin-top: 0;
+}
+.how-it-works ol {
+  margin: 0.75rem 0 0 1.25rem;
+  color: var(--text);
+  line-height: 1.6;
 }
 footer {
   text-align: center;
