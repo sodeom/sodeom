@@ -31,19 +31,58 @@
     <main class="container">{% block content %}{% endblock %}</main>
 
     <footer>
-      <nav>
-        <a href="/privacy-policy">Privacy Policy</a>
-        <a href="/terms">Terms of Service</a>
-        <a href="/contact">Contact Us</a>
-        <a href="/about">About Private Search</a>
-        <a href="/services">All Services</a>
-        <a href="/urls">Urls</a>
-        <a href="https://github.com/sodeom">GitHub</a>
-      </nav>
-      <p>
-        © 2025 Sodeom Search Engine. Built by Abdul Hadi. Privacy-first,
-        independent search.
-      </p>
+      <div class="footer-grid">
+        <div>
+          <strong>Sodeom</strong>
+          <ul>
+            <li><a href="/about">About</a></li>
+            <li><a href="/privacy-policy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms</a></li>
+          </ul>
+        </div>
+        <div>
+          <strong>Resources</strong>
+          <ul>
+            <li><a href="/contact">Contact</a></li>
+            <li>
+              <a href="https://github.com/sodeom" target="_blank" rel="noopener"
+                >GitHub</a
+              >
+            </li>
+          </ul>
+        </div>
+        <div class="footer-meta">
+          <span class="beta-badge">Beta</span><br />
+          <small>© 2026 Sodeom. Independent Privacy Search.</small><br />
+          <small>Built by Abdul Hadi.</small>
+        </div>
+      </div>
+      <style>
+        .footer-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 2em;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin: 2em 0 0 0;
+        }
+        .footer-grid > div {
+          min-width: 140px;
+        }
+        .footer-grid ul {
+          list-style: none;
+          padding: 0;
+          margin: 0.5em 0 0 0;
+        }
+        .footer-grid li {
+          margin-bottom: 0.3em;
+        }
+        .footer-meta {
+          font-size: 0.95em;
+          color: #666;
+          text-align: left;
+        }
+      </style>
     </footer>
   </body>
 </html>
