@@ -72,18 +72,16 @@ endblock %} {% block head_extra %}
 {% endblock %} {% block header %}
 
 <img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
-<h1>Sodeom <span class="beta-badge">Beta</span></h1>
-<p>Independent privacy search. No tracking. No profiling.</p>
-<p class="hero-clarity">
-  Search the web without tracking, profiling, or personalized filtering.
+<h1>
+  Sodeom <span class="beta-badge">Beta</span> – Private Search Without Tracking
+</h1>
+<p
+  class="hero-clarity"
+  style="font-size: 1.13em; margin-top: 0.5em; color: #a7f3d0"
+>
+  Search the web freely without profiling, behavioral tracking, or personalized
+  manipulation.
 </p>
-
-<nav class="product-nav" aria-label="Sodeom products">
-  <a class="btn btn-outline-light" href="https://mail.sodeom.com/"
-    >Private Mail</a
-  >
-  <a class="btn btn-outline-light" href="/">Secure Search</a>
-</nav>
 
 <form class="search-form" method="GET" role="search" data-search-form="">
   <input
@@ -111,88 +109,17 @@ endblock %} {% block head_extra %}
 <section class="about-section">
   <h2>About Sodeom</h2>
   <p>
-    Sodeom is an independent privacy-focused search engine designed to provide
-    transparent, minimally filtered search results without tracking or profiling
-    users.
-  </p>
-</section>
-
-<section class="transparency-section">
-  <h3>Transparency</h3>
-  <ul>
-    <li>No user accounts required</li>
-    <li>No search history stored</li>
-    <li>No behavioral profiling</li>
-    <li>No targeted ads</li>
-  </ul>
-</section>
-
-<section class="human-signal">
-  <p>
-    Built independently by <strong>Abdul Hadi</strong>.
+    Sodeom is an independent privacy-focused search engine. No tracking. No
+    profiling. No behavioral manipulation. Built by Abdul Hadi.
     <a href="https://github.com/sodeom" rel="noopener" target="_blank"
       >GitHub</a
     >
-    &bull; <a href="/contact">Contact the developer</a>
   </p>
-</section>
-
-<style>
-  .beta-badge {
-    display: inline-block;
-    background: linear-gradient(90deg, #10b981 60%, #34d399 100%);
-    color: #181f2a;
-    font-size: 0.8em;
-    padding: 2px 9px;
-    border-radius: 7px;
-    margin-left: 7px;
-    vertical-align: middle;
-    letter-spacing: 1px;
-    font-weight: 700;
-    box-shadow: 0 1px 4px rgba(16, 185, 129, 0.13);
-  }
-  .about-section,
-  .transparency-section,
-  .human-signal {
-    margin: 1.5em 0 1em 0;
-    background: #181f2a;
-    border-radius: 0.75rem;
-    padding: 1.25em 1.5em;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.07);
-    border: 1px solid #232a3a;
-  }
-  .about-section h2,
-  .transparency-section h3 {
-    margin-top: 0;
-    color: #10b981;
-  }
-  .about-section p,
-  .transparency-section ul,
-  .human-signal p {
-    color: #e5e7eb;
-  }
-  .transparency-section li {
-    color: #a7f3d0;
-  }
-  .human-signal {
-    font-size: 1em;
-    color: #cbd5e1;
-    background: #1e293b;
-    border: 1px solid #232a3a;
-  }
-  .human-signal a {
-    color: #10b981;
-    font-weight: 500;
-  }
-</style>
-
-<section class="how-it-works">
-  <h2>How Sodeom Works</h2>
-  <ol>
-    <li>You enter a search query</li>
-    <li>We fetch results from multiple sources</li>
-    <li>No tracking. No profiling. No behavior storage.</li>
-  </ol>
+  <ul style="margin: 0.7em 0 0 1.2em; color: #6ee7b7">
+    <li>No user accounts required</li>
+    <li>No search history stored</li>
+    <li>No targeted ads</li>
+  </ul>
 </section>
 
 {% if query %}
@@ -226,41 +153,6 @@ endblock %} {% block head_extra %}
   {% endif %}
 </ul>
 {% endif %}
-
-<section class="hero-section">
-  <h2>Search Without Being Tracked</h2>
-  <p>
-    Private search that protects your data and keeps results free of profiling.
-  </p>
-</section>
-
-<div class="feature-grid">
-  <div class="feature-card">
-    <h3>🔒 Private by Design</h3>
-    <p>
-      We don’t track, store, or share your search data. Your searches remain
-      private.
-    </p>
-  </div>
-  <div class="feature-card">
-    <h3>🚫 No Ads or Tracking</h3>
-    <p>No targeted ads, tracking pixels, or data harvesting algorithms.</p>
-  </div>
-  <div class="feature-card">
-    <h3>⚡ Fast & Reliable</h3>
-    <p>
-      Get instant search results from multiple sources while maintaining
-      privacy.
-    </p>
-  </div>
-  <div class="feature-card">
-    <h3>🧭 Minimal Filtering</h3>
-    <p>
-      Results are not personalized or reshaped by user profiles, so you see a
-      broader, more neutral view of the web.
-    </p>
-  </div>
-</div>
 
 <script>
   (function () {
