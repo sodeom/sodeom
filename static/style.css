@@ -2,11 +2,11 @@
 .about-section,
 .transparency-section,
 .human-signal {
-  background: #181f2a;
+  background: #131926;
   border-radius: 0.75rem;
   padding: 1.25em 1.5em;
   margin: 1.5em 0 1em 0;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.07);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.04);
   border: 1px solid #232a3a;
 }
 .about-section h2,
@@ -18,7 +18,7 @@
 .about-section p,
 .transparency-section ul,
 .human-signal p {
-  color: #e5e7eb;
+  color: #d1d5db;
   font-size: 1.05rem;
   margin-bottom: 0.5em;
 }
@@ -27,15 +27,15 @@
   margin: 0.5em 0 0 0;
 }
 .transparency-section li {
-  color: #a7f3d0;
+  color: #6ee7b7;
   font-size: 1.01em;
   margin-bottom: 0.35em;
   list-style: disc;
 }
 .human-signal {
   font-size: 1em;
-  color: #cbd5e1;
-  background: #1e293b;
+  color: #a7f3d0;
+  background: #181f2a;
   border: 1px solid #232a3a;
   margin-top: 0.5em;
 }
@@ -46,7 +46,7 @@
 .beta-badge {
   display: inline-block;
   background: linear-gradient(90deg, #10b981 60%, #34d399 100%);
-  color: #181f2a;
+  color: #0b1220;
   font-size: 0.8em;
   padding: 2px 9px;
   border-radius: 7px;
