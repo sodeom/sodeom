@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Payment Successful - Sodeom Pro{% endblock %}
+{% block head_extra %}
+<style>
+.success-container {
+    max-width: 600px;
+    margin: 3em auto;
+    text-align: center;
+    padding: 2em;
+}
+
+.success-icon {
+    font-size: 5rem;
+    margin-bottom: 1em;
+}
+
+.success-title {
+    color: #10b981;
+    font-size: 2rem;
+    margin-bottom: 0.5em;
+}
+
+.success-message {
+    color: #9ca3af;
+    font-size: 1.1rem;
+    margin-bottom: 2em;
+}
+
+.pro-features {
+    background: #1a2332;
+    border-radius: 12px;
+    padding: 1.5em;
+    margin-bottom: 2em;
+}
+
+.pro-features h3 {
+    color: #10b981;
+    margin-bottom: 1em;
+}
+
+.pro-features ul {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
+.pro-features li {
+    color: #d1d5db;
+    padding: 0.5em 0;
+    border-bottom: 1px solid #2a3a4a;
+}
+
+.pro-features li::before {
+    content: "✓ ";
+    color: #10b981;
+}
+
+.continue-btn {
+    display: inline-block;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    color: #0f1620;
+    font-weight: 700;
+    padding: 1em 2.5em;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: transform 0.2s;
+}
+
+.continue-btn:hover {
+    transform: scale(1.05);
+}
+</style>
+{% endblock %}
+{% block header %}
+<img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
+<h1>🎉 Welcome to Sodeom Pro!</h1>
+{% endblock %}
+{% block content %}
+<div class="success-container">
+    <div class="success-icon">✅</div>
+    <h2 class="success-title">Payment Successful!</h2>
+    <p class="success-message">
+        Thank you for upgrading to Sodeom Pro. Your account has been activated with premium features.
+    </p>
+    
+    <div class="pro-features">
+        <h3>Your Pro Benefits</h3>
+        <ul>
+            <li>No ads while searching</li>
+            <li>Unlimited AI summaries</li>
+            <li>Advanced search filters</li>
+            <li>Priority support</li>
+            <li>Early access to new features</li>
+        </ul>
+    </div>
+    
+    <p style="color: #6ee7b7; margin-bottom: 2em;">
+        A confirmation email has been sent to your registered email address.
+    </p>
+    
+    <a href="/" class="continue-btn">Start Searching Privately →</a>
+</div>
+{% endblock %}

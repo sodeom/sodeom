@@ -21,6 +21,7 @@
         <p>Private search with zero tracking and minimal filtering.</p>
         <nav>
           <a href="/">Search</a> | <a href="/images">Images</a> |
+          <a href="/upgrade" style="color: #10b981; font-weight: bold;">Upgrade to Pro</a> |
           <a href="/privacy-policy">Privacy</a> |
           <a href="/contact">Contact</a>
         </nav>
@@ -38,12 +39,14 @@
             <li><a href="/about">About</a></li>
             <li><a href="/privacy-policy">Privacy Policy</a></li>
             <li><a href="/terms">Terms</a></li>
+            <li><a href="/upgrade">Pro Plans</a></li>
           </ul>
         </div>
         <div>
           <strong>Resources</strong>
           <ul>
             <li><a href="/contact">Contact</a></li>
+            <li><a href="/faq">FAQ</a></li>
             <li>
               <a href="https://github.com/sodeom" target="_blank" rel="noopener"
                 >GitHub</a
@@ -84,5 +87,13 @@
         }
       </style>
     </footer>
+
+    {% if stripe_publishable_key %}
+    <!-- Stripe Integration -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+      const stripePublishableKey = "{{ stripe_publishable_key }}";
+    </script>
+    {% endif %}
   </body>
 </html>

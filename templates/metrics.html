@@ -1,0 +1,29 @@
+{% extends "base.html" %} {% block title %}Monetization Metrics{% endblock %} {%
+block content %}
+<h2>Monetization Metrics (Last 30 Days)</h2>
+<table border="1" cellpadding="6">
+  <tr>
+    <th>Date</th>
+    <th>Searches</th>
+    <th>AI Summaries</th>
+    <th>AI Limit Hits</th>
+    <th>Upgrade Clicks</th>
+    <th>Successful Upgrades</th>
+    <th>Conversion Rate (%)</th>
+  </tr>
+  {% for row in data %}
+  <tr>
+    <td>{{ row.date }}</td>
+    <td>{{ row.total_searches }}</td>
+    <td>{{ row.total_ai_summaries }}</td>
+    <td>{{ row.ai_limit_hits }}</td>
+    <td>{{ row.upgrade_clicks }}</td>
+    <td>{{ row.successful_upgrades }}</td>
+    <td>
+      {{ (row.successful_upgrades / row.upgrade_clicks * 100) if
+      row.upgrade_clicks else 0 | round(2) }}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
