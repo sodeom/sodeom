@@ -5,3 +5,6 @@ stripe
 python-dotenv
 requests
 openai
+httpx
+selectolax
+beautifulsoup4

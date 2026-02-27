@@ -1,0 +1,238 @@
+{% extends "base.html" %} {% block title %}{% if query %}{{ query }} - {% endif
+%}News Search - Sodeom{% endblock %} {% block head_extra %}
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="robots" content="index, follow" />
+<meta
+  name="description"
+  content="Sodeom News Search – find news privately without tracking or ads."
+/>
+<meta
+  name="keywords"
+  content="private news search, anonymous news search, privacy-focused news"
+/>
+<link rel="canonical" href="https://sodeom.com/news" />
+{% endblock %} {% block header %}
+<img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
+<h1>Sodeom News Search</h1>
+<p>Private, fast &amp; clean news search.</p>
+
+<form class="search-form" method="GET" role="search">
+  <input
+    type="text"
+    name="q"
+    placeholder="Search news privately..."
+    value="{{ query or '' }}"
+    required
+  />
+  <button class="btn-primary" type="submit">Search</button>
+</form>
+
+{% if query %}
+<nav class="search-nav">
+  <a href="/?q={{ query | urlencode }}">Web</a> |
+  <a href="/images?q={{ query | urlencode }}">Images</a> |
+  <a href="/videos?q={{ query | urlencode }}">Videos</a> |
+  <a href="/news?q={{ query | urlencode }}" class="active-tab">News</a> |
+  <a href="/wiki/{{ query | urlencode }}">Wiki</a>
+  {% if has_prev %} |
+  <a href="/news?q={{ query | urlencode }}&amp;page={{ page - 1 }}">← Prev</a>{%
+  endif %} {% if has_next %} |
+  <a href="/news?q={{ query | urlencode }}&amp;page={{ page + 1 }}">Next →</a>{%
+  endif %}
+</nav>
+{% endif %} {% endblock %} {% block content %} {% if corrections %}
+<div class="search-correction">
+  Did you mean: {% for correction in corrections %}
+  <a href="/news?q={{ correction | urlencode }}">{{ correction }}</a>{% if not
+  loop.last %}, {% endif %} {% endfor %}
+</div>
+{% endif %} {% if query %}
+<h2 class="page-title">News Results</h2>
+<p class="page-subtitle">
+  Showing news for "{{ query }}"{% if total_results %} — {{ total_results }}
+  results{% endif %}.
+</p>
+
+{% if articles %}
+<ul class="news-list">
+  {% for article in articles %}
+  <li class="news-item">
+    <a
+      href="{{ article.link }}"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="news-link"
+    >
+      {% if article.thumbnail %}
+      <div class="news-thumb-wrap">
+        <img
+          src="{{ article.thumbnail }}"
+          alt="{{ article.title or 'News thumbnail' }}"
+          class="news-thumb"
+          loading="lazy"
+          onerror="this.closest('.news-thumb-wrap').style.display = 'none'"
+        />
+      </div>
+      {% endif %}
+      <div class="news-info">
+        <h3 class="news-title">{{ article.title or 'Untitled' }}</h3>
+        <div class="news-meta">
+          {% if article.source %}
+          <span class="source-badge">{{ article.source }}</span>
+          {% endif %} {% if article.publishedDate %}
+          <span class="news-date">📅 {{ article.publishedDate }}</span>
+          {% endif %}
+        </div>
+        {% if article.description %}
+        <p class="news-desc">{{ article.description | truncate(200) }}</p>
+        {% endif %}
+        <span class="news-url-small">{{ article.link | truncate(70) }}</span>
+      </div>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="content-card">
+  <p>No news results found for "{{ query }}". Try different keywords.</p>
+</div>
+{% endif %} {% if suggestions %}
+<div class="search-suggestions">
+  <span class="suggestions-label">Related searches:</span>
+  {% for suggestion in suggestions %}
+  <a href="/news?q={{ suggestion | urlencode }}" class="suggestion-chip"
+    >{{ suggestion }}</a
+  >
+  {% endfor %}
+</div>
+{% endif %} {% else %}
+<div class="content-card">
+  <h2 class="page-title">Search news privately</h2>
+  <p class="page-subtitle">
+    Enter a query above to find news without tracking.
+  </p>
+  <ul style="color: #6ee7b7; margin: 1em 0 0 1.2em">
+    <li>Results from multiple news sources</li>
+    <li>No reading history stored</li>
+    <li>No personalized news feed</li>
+  </ul>
+</div>
+{% endif %}
+
+<style>
+  .news-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+
+  .news-item {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition:
+      border-color 0.15s ease,
+      transform 0.15s ease;
+  }
+
+  .news-item:hover {
+    border-color: #10b981;
+    transform: translateY(-2px);
+  }
+
+  .news-link {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .news-thumb-wrap {
+    flex-shrink: 0;
+    width: 140px;
+    height: 90px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background: #0b1220;
+  }
+
+  .news-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .news-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .news-title {
+    margin: 0 0 0.4rem;
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: #10b981;
+    line-height: 1.4;
+  }
+
+  .news-item:hover .news-title {
+    color: #34d399;
+    text-decoration: underline;
+  }
+
+  .news-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.4rem;
+  }
+
+  .news-date {
+    font-size: 0.83rem;
+    color: #9ca3af;
+  }
+
+  .news-desc {
+    margin: 0.3rem 0;
+    font-size: 0.9rem;
+    color: #d1d5db;
+    line-height: 1.5;
+  }
+
+  .news-url-small {
+    font-size: 0.78rem;
+    color: #6b7280;
+    display: block;
+    margin-top: 0.3rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .source-badge {
+    background: #1f2937;
+    color: #10b981;
+    font-size: 0.78rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+  }
+
+  @media (max-width: 600px) {
+    .news-link {
+      flex-direction: column;
+    }
+    .news-thumb-wrap {
+      width: 100%;
+      height: 160px;
+    }
+  }
+</style>
+
+{% endblock %}

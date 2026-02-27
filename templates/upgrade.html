@@ -102,6 +102,9 @@
     cursor: pointer;
     width: 100%;
     transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    box-sizing: border-box;
   }
 
   .upgrade-btn:hover {
@@ -153,6 +156,16 @@
     color: #9ca3af;
     margin: 0;
   }
+  
+  .payment-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    margin-top: 1em;
+    color: #9ca3af;
+    font-size: 0.9rem;
+  }
 </style>
 {% endblock %} {% block header %}
 <img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
@@ -173,9 +186,9 @@
       <li>Priority support</li>
       <li>Cancel anytime</li>
     </ul>
-    <button class="upgrade-btn" onclick="upgrade('monthly')">
+    <a href="#" class="upgrade-btn" onclick="alert('Contact us for monthly subscription!'); return false;">
       Start Monthly Plan
-    </button>
+    </a>
   </div>
 
   <div class="pricing-card featured">
@@ -190,9 +203,12 @@
       <li>Founding member badge</li>
       <li>Support independent development</li>
     </ul>
-    <button class="upgrade-btn secondary" onclick="upgrade('lifetime')">
+    <a href="{{ stripe_payment_link }}" class="upgrade-btn secondary" target="_blank">
       Become a Founding Member
-    </button>
+    </a>
+    <div class="payment-badge">
+      <span>🔒 Secure payment powered by Stripe</span>
+    </div>
   </div>
 </section>
 
@@ -206,13 +222,6 @@
     </p>
   </div>
   <div class="faq-item">
-    <h3>Can I cancel my monthly subscription?</h3>
-    <p>
-      Yes! You can cancel anytime from your account settings. You'll keep Pro
-      access until the end of your billing period.
-    </p>
-  </div>
-  <div class="faq-item">
     <h3>Is the Founding Member offer really lifetime?</h3>
     <p>
       Yes! Pay $19 once and get Pro access forever. No recurring charges. This
@@ -223,7 +232,7 @@
     <h3>What payment methods do you accept?</h3>
     <p>
       We use Stripe for secure payments. All major credit cards, debit cards,
-      and Apple Pay are supported.
+      Apple Pay, Google Pay, and more are supported.
     </p>
   </div>
   <div class="faq-item">
@@ -238,58 +247,4 @@
 <div style="margin: 2em 0; text-align: center; font-size: 1.2em">
   🎯 Founding Member Spots Remaining: {{ spots_remaining }} / 100
 </div>
-
-<script src="https://js.stripe.com/v3/"></script>
-<script>
-  const stripePublishableKey = "{{ stripe_publishable_key }}";
-  let stripe = null;
-
-  if (stripePublishableKey && stripePublishableKey !== "") {
-    stripe = Stripe(stripePublishableKey);
-  }
-
-  function upgrade(type) {
-    if (!stripe) {
-      alert("Payment system not configured. Please contact support.");
-      console.error("Stripe publishable key not set");
-      return;
-    }
-
-    // For demo, prompt for email. In production, get from auth session
-    const email = prompt("Enter your email for account activation:");
-    if (!email) return;
-
-    const btn = event.target;
-    btn.disabled = true;
-    btn.textContent = "Processing...";
-
-    fetch("/create-checkout-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: type, email: email }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          alert("Error: " + data.error);
-          btn.disabled = false;
-          btn.textContent =
-            type === "lifetime"
-              ? "Become a Founding Member"
-              : "Start Monthly Plan";
-          return;
-        }
-        return stripe.redirectToCheckout({ sessionId: data.id });
-      })
-      .catch((err) => {
-        console.error("Checkout error:", err);
-        alert("Payment failed. Please try again.");
-        btn.disabled = false;
-        btn.textContent =
-          type === "lifetime"
-            ? "Become a Founding Member"
-            : "Start Monthly Plan";
-      });
-  }
-</script>
 {% endblock %}

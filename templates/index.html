@@ -122,38 +122,157 @@ endblock %} {% block head_extra %}
   </ul>
 </section>
 
-<section class="pro-offer" style="background:#181f2a; border-radius:0.75rem; margin:2em 0 1.5em 0; padding:1.5em 1.5em 1.2em 1.5em; box-shadow:0 2px 8px rgba(16,185,129,0.07); border:1px solid #232a3a; text-align:center;">
-  <h2 style="color:#10b981; margin-top:0; font-size:1.35rem;">🚀 Sodeom Pro – Privacy First Search</h2>
-  <p style="color:#e5e7eb; font-size:1.08em; margin:0.5em 0 1.2em 0;">Enjoy unlimited searches & AI summaries.<br> <span style="color:#6ee7b7; font-size:0.98em;">No tracking, ever.</span></p>
-  <ul style="list-style:none; padding:0; margin:0 0 1.2em 0; color:#a7f3d0; font-size:1.05em;">
+<section
+  class="pro-offer"
+  style="
+    background: #181f2a;
+    border-radius: 0.75rem;
+    margin: 2em 0 1.5em 0;
+    padding: 1.5em 1.5em 1.2em 1.5em;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.07);
+    border: 1px solid #232a3a;
+    text-align: center;
+  "
+>
+  <h2 style="color: #10b981; margin-top: 0; font-size: 1.35rem">
+    🚀 Sodeom Pro – Privacy First Search
+  </h2>
+  <p style="color: #e5e7eb; font-size: 1.08em; margin: 0.5em 0 1.2em 0">
+    Enjoy unlimited searches & AI summaries.<br />
+    <span style="color: #6ee7b7; font-size: 0.98em">No tracking, ever.</span>
+  </p>
+  <ul
+    style="
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1.2em 0;
+      color: #a7f3d0;
+      font-size: 1.05em;
+    "
+  >
     <li>✅ No ads</li>
     <li>✅ Unlimited AI summaries</li>
     <li>✅ Advanced filters & themes</li>
     <li>✅ Early access to new features</li>
   </ul>
-  <div style="margin:1.2em 0 0.7em 0;">
-    <span style="background:#232a3a; color:#fbbf24; border-radius:5px; padding:0.25em 0.7em; font-weight:600; font-size:1.08em;">Regularly $5/month → <span style="color:#10b981;">Today only $2.99/month</span></span>
+  <div style="margin: 1.2em 0 0.7em 0">
+    <span
+      style="
+        background: #232a3a;
+        color: #fbbf24;
+        border-radius: 5px;
+        padding: 0.25em 0.7em;
+        font-weight: 600;
+        font-size: 1.08em;
+      "
+      >Regularly $5/month →
+      <span style="color: #10b981">Today only $2.99/month</span></span
+    >
   </div>
-  <div style="margin:0.5em 0 1.1em 0;">
-    <span style="background:#232a3a; color:#a7f3d0; border-radius:5px; padding:0.25em 0.7em; font-size:1em;">🎯 <b>Founding Member:</b> $19 Lifetime <span id="spots-left" style="color:#f87171;">(100 spots)</span></span>
+  <div style="margin: 0.5em 0 1.1em 0">
+    <span
+      style="
+        background: #232a3a;
+        color: #a7f3d0;
+        border-radius: 5px;
+        padding: 0.25em 0.7em;
+        font-size: 1em;
+      "
+      >🎯 <b>Founding Member:</b> $19 Lifetime
+      <span id="spots-left" style="color: #f87171">(100 spots)</span></span
+    >
   </div>
-  <button style="background:linear-gradient(90deg,#10b981 60%,#34d399 100%); color:#181f2a; font-weight:700; font-size:1.1em; border:none; border-radius:7px; padding:0.7em 2.2em; margin-top:0.5em; cursor:pointer; box-shadow:0 1px 4px rgba(16,185,129,0.13);">Upgrade to Pro</button>
-  <p style="color:#a7f3d0; font-size:0.98em; margin:1.2em 0 0 0;">$2.99/month = $35.88/year &nbsp;|&nbsp; Lifetime $19 → instant appeal</p>
-  <p style="color:#fca5a5; font-size:0.97em; margin:0.5em 0 0 0;">Free: 5 AI summaries/day</p>
-</section>
+  <button
+    style="
+      background: linear-gradient(90deg, #10b981 60%, #34d399 100%);
+      color: #181f2a;
+      font-weight: 700;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 7px;
+      padding: 0.7em 2.2em;
+      margin-top: 0.5em;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(16, 185, 129, 0.13);
+    "
+  >
+    Upgrade to Pro
+  </button>
+  <p style="color: #a7f3d0; font-size: 0.98em; margin: 1.2em 0 0 0">
+    $2.99/month = $35.88/year &nbsp;|&nbsp; Lifetime $19 → instant appeal
+  </p>
+  <p style="color: #fca5a5; font-size: 0.97em; margin: 0.5em 0 0 0">
+    Free: 5 AI summaries/day
+  </p>
 </section>
 
 {% if query %}
 <nav class="search-nav">
-  <a href="/?q={{ query }}">Web Results</a> |
-  <a href="/images?q={{ query }}">Images</a> |
-  <a href="/wiki/{{ query }}">Details</a> | {% if has_prev %}
-  <a href="{{ url_for('index', q=query, page=page-1, b=b) }}">Previous</a> | {%
-  endif %} {% if has_next %}
-  <a href="{{ url_for('index', q=query, page=page+1, b=b) }}">Next</a>
-  {% endif %}
+  <a href="/?q={{ query | urlencode }}" class="active-tab">Web</a> |
+  <a href="/images?q={{ query | urlencode }}">Images</a> |
+  <a href="/videos?q={{ query | urlencode }}">Videos</a> |
+  <a href="/news?q={{ query | urlencode }}">News</a> |
+  <a href="/wiki/{{ query | urlencode }}">Wiki</a>
+  {% if has_prev %} |
+  <a href="{{ url_for('index', q=query, page=page-1, b=b) }}">← Prev</a>{% endif
+  %} {% if has_next %} |
+  <a href="{{ url_for('index', q=query, page=page+1, b=b) }}">Next →</a>{% endif
+  %}
 </nav>
-{% endif %} {% endblock %} {% block content %} {% if query %}
+{% endif %} {% endblock %} {% block content %} {% if query %} {# ── Spell
+corrections ── #} {% if corrections %}
+<div class="search-correction">
+  Did you mean: {% for correction in corrections %}
+  <a href="/?q={{ correction | urlencode }}">{{ correction }}</a>{% if not
+  loop.last %}, {% endif %} {% endfor %}
+</div>
+{% endif %} {# ── Instant answers ── #} {% if answers %}
+<div class="instant-answer">
+  {% for answer in answers %}
+  <div class="answer-box">
+    <span class="answer-icon">⚡</span>
+    <span>{{ answer }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %} {# ── Infobox / Knowledge panel ── #} {% if infoboxes %} {% for box
+in infoboxes %}
+<div class="infobox-card">
+  <div class="infobox-header">
+    {% if box.img_src %}<img
+      src="{{ box.img_src }}"
+      alt="{{ box.id or '' }}"
+      class="infobox-img"
+    />{% endif %}
+    <div>
+      <h3 class="infobox-title">{{ box.id or box.title or '' }}</h3>
+      {% if box.infobox %}
+      <p class="infobox-type">{{ box.infobox }}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% if box.content %}
+  <p class="infobox-content">{{ box.content }}</p>
+  {% endif %} {% if box.attributes %}
+  <table class="infobox-table">
+    {% for attr in box.attributes %} {% if attr.label and attr.value %}
+    <tr>
+      <th>{{ attr.label }}</th>
+      <td>{{ attr.value }}</td>
+    </tr>
+    {% endif %} {% endfor %}
+  </table>
+  {% endif %} {% if box.urls %}
+  <div class="infobox-links">
+    {% for u in box.urls %}
+    <a href="{{ u.url }}" target="_blank" rel="noopener noreferrer"
+      >{{ u.title or u.url }}</a
+    >
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endfor %} {% endif %} {# ── Web results ── #}
 <ul class="results-list" role="list" aria-label="Search results">
   {% if results %} {% for result in results %}
   <li role="listitem">
@@ -166,14 +285,30 @@ endblock %} {% block head_extra %}
         {{ result.title }}
       </a>
     </h5>
-    <small>{{ result.link }}</small><br />
+    <small class="result-url">{{ result.pretty_url or result.link }}</small
+    ><br />
     <small class="description-small">{{ result.description }}</small>
+    {% if result.engines %}
+    <small class="result-engines">via {{ result.engines | join(', ') }}</small>
+    {% endif %}
   </li>
   {% endfor %} {% else %}
-  <li>No results found. Try different keywords or simplify your query.</li>
+  <li class="no-results">
+    No results found. Try different keywords or simplify your query.
+  </li>
   {% endif %}
 </ul>
-{% endif %}
+
+{# ── Suggestions ── #} {% if suggestions %}
+<div class="search-suggestions">
+  <span class="suggestions-label">Related searches:</span>
+  {% for suggestion in suggestions %}
+  <a href="/?q={{ suggestion | urlencode }}" class="suggestion-chip"
+    >{{ suggestion }}</a
+  >
+  {% endfor %}
+</div>
+{% endif %} {% endif %}
 
 <script>
   (function () {

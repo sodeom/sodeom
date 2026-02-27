@@ -1,167 +1,428 @@
-import asyncio
-import base64
-from urllib.parse import parse_qs, unquote, urlparse
+"""
+SearXNG-powered search backend for Sodeom.
 
-import httpx
+Queries a SearXNG instance's JSON API to get web results, images, videos,
+spell corrections, suggestions, infoboxes (wiki panels), and instant answers.
+Falls back across multiple public SearXNG instances if one is down.
+"""
+
+import logging
+import os
+import random
+
 import requests
-from bs4 import BeautifulSoup
-from selectolax.parser import HTMLParser
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# SearXNG instance configuration
+# ---------------------------------------------------------------------------
+# Local SearXNG instance (started as subprocess by app.py)
+_LOCAL_INSTANCE = "http://localhost:8888"
+
+# Prefer a self-hosted instance via env var; fall back to local, then public.
+_PRIMARY_INSTANCE = os.getenv("SEARXNG_URL", "").rstrip("/")
+
+_PUBLIC_INSTANCES = [
+    "https://search.bus-hit.me",
+    "https://searx.be",
+    "https://search.ononoki.org",
+    "https://searx.tiekoetter.com",
+    "https://search.sapti.me",
+    "https://searx.oxf.app",
+    "https://paulgo.io",
+    "https://opnxng.com",
+    "https://priv.au",
+    "https://searx.work",
+]
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/122.0 Safari/537.36"
+    ),
+    "Accept": "application/json, text/html",
 }
 
-# ----------------- Helper to clean URLs -----------------
-def extract_target_url(url: str) -> str:
-    if not url:
-        return ""
-    parsed = urlparse(url)
-    domain = parsed.netloc.lower()
-    qs = parse_qs(parsed.query)
+# Adult-content keyword blocklist (applied on top of SearXNG safe-search)
+_ADULT_KEYWORDS = ["porn", "xxx", "adult", "sex", "nude", "nsfw", "mature"]
 
-    # DuckDuckGo redirect
-    if "duckduckgo.com" in domain and parsed.path.startswith("/l/"):
-        return unquote(qs.get("uddg", [url])[0])
 
-    # Bing ck/a base64 redirect
-    if "bing.com" in domain and parsed.path.startswith("/ck/"):
-        encoded = qs.get("u", [None])[0]
-        if encoded:
+def _get_instances():
+    """Return an ordered list of SearXNG base URLs to try.
+
+
+    1. SEARXNG_URL env var (self-hosted override)
+    2. Local instance at localhost:8888 (started by app.py)
+    3. Public instances (shuffled for load spreading)
+    """
+    instances = list(_PUBLIC_INSTANCES)
+    random.shuffle(instances)  # spread load
+    # Always try local instance first (fastest, most reliable)
+    instances.insert(0, _LOCAL_INSTANCE)
+    # Env-var override takes top priority
+    if _PRIMARY_INSTANCE:
+        instances.insert(0, _PRIMARY_INSTANCE)
+    return instances
+
+
+# ---------------------------------------------------------------------------
+# Low-level query helper
+# ---------------------------------------------------------------------------
+
+
+def _query_searxng(params: dict, timeout: int = 12) -> dict | None:
+    """
+    Try each SearXNG instance in order until one returns a valid JSON response.
+    Returns the parsed JSON dict or None if all fail.
+    """
+    params.setdefault("format", "json")
+    params.setdefault("safesearch", "1")  # moderate safe-search
+
+    for base_url in _get_instances():
+        try:
+            url = f"{base_url}/search"
+            resp = requests.get(url, params=params, headers=HEADERS, timeout=timeout)
+            resp.raise_for_status()
+            data = resp.json()
+            if isinstance(data, dict):
+                return data
+        except Exception as e:
             try:
-                if encoded.startswith("a1"):
-                    encoded = encoded[2:]  # remove the 'a1' prefix
-                decoded = base64.b64decode(encoded + '==').decode("utf-8")
-                return decoded
+                logger.warning("[SearXNG] %s failed: %s", base_url, e)
             except Exception:
-                return url
-
-    return url
-
-# ----------------- DuckDuckGo -----------------
-async def search_duckduckgo(client, query, max_results=10):
-    url = "https://html.duckduckgo.com/html/"
-    data = {"q": query, "b": ""}
-    resp = await client.post(url, data=data, headers=HEADERS)
-    resp.raise_for_status()
-    tree = HTMLParser(resp.text)
-
-    results = []
-    for node in tree.css("div.result")[:max_results]:
-        try:
-            a = node.css_first("a[href]")
-            title = a.text(strip=True)
-            link = extract_target_url(a.attributes.get("href", ""))
-            desc_node = node.css_first("a.result__snippet")
-            description = desc_node.text(strip=True) if desc_node else ""
-            results.append({"title": title, "link": link, "description": description})
-        except:
+                pass
             continue
-    return results
 
-# ----------------- Bing -----------------
-async def search_bing(client, query, max_results=10):
-    url = "https://www.bing.com/search"
-    params = {"q": query, "count": max_results}
-    resp = await client.get(url, params=params, headers=HEADERS)
-    resp.raise_for_status()
-    tree = HTMLParser(resp.text)
+    return None
 
+
+# ---------------------------------------------------------------------------
+# Content filter
+# ---------------------------------------------------------------------------
+
+
+def _is_safe(text: str) -> bool:
+    """Return False if text contains adult keywords."""
+    lower = text.lower()
+    return not any(kw in lower for kw in _ADULT_KEYWORDS)
+
+
+def _filter_results(results: list[dict]) -> list[dict]:
+    """Remove results whose title, URL or description contain adult keywords."""
+    safe = []
+    for r in results:
+        combined = " ".join(str(r.get(k, "")) for k in ("title", "url", "content"))
+        if _is_safe(combined):
+            safe.append(r)
+    return safe
+
+
+# ---------------------------------------------------------------------------
+# Public API – Web search
+# ---------------------------------------------------------------------------
+
+
+def search_web(query: str, page: int = 1, language: str = "en") -> dict:
+    """
+    Perform a general web search via SearXNG.
+
+    Returns a dict with keys:
+        results      – list of {title, link, description, engine, ...}
+        suggestions  – list of suggested queries
+        corrections  – list of spelling corrections
+        infoboxes    – list of infobox dicts (wiki panels, QA, etc.)
+        answers      – list of instant-answer strings
+        query        – the original query
+        page         – current page number
+    """
+    params = {
+        "q": query,
+        "categories": "general",
+        "pageno": page,
+        "language": language,
+        "engines": "google,duckduckgo,bing,brave,mojeek,qwant",
+    }
+
+    data = _query_searxng(params)
+
+    if data is None:
+        return _empty_response(query, page)
+
+    # Normalise result keys to what the templates expect
     results = []
-    for li in tree.css("li.b_algo")[:max_results]:
-        try:
-            a = li.css_first("h2 a")
-            title = a.text(strip=True)
-            link = extract_target_url(a.attributes.get("href", ""))
-            desc_node = li.css_first("div.b_caption p")
-            description = desc_node.text(strip=True) if desc_node else ""
-            results.append({"title": title, "link": link, "description": description})
-        except:
+    for r in data.get("results", []):
+        results.append(
+            {
+                "title": r.get("title", ""),
+                "link": r.get("url", ""),
+                "description": r.get("content", ""),
+                "engine": r.get("engine", ""),
+                "engines": r.get("engines", []),
+                "score": r.get("score", 0),
+                "category": r.get("category", "general"),
+                "pretty_url": r.get("pretty_url", ""),
+                "parsed_url": r.get("parsed_url", []),
+                "thumbnail": r.get("thumbnail", ""),
+                "img_src": r.get("img_src", ""),
+            }
+        )
+
+    results = _filter_results_normalised(results)
+
+    return {
+        "results": results,
+        "suggestions": list(data.get("suggestions", [])),
+        "corrections": list(data.get("corrections", [])),
+        "infoboxes": list(data.get("infoboxes", [])),
+        "answers": list(data.get("answers", [])),
+        "query": query,
+        "page": page,
+        "number_of_results": data.get("number_of_results", len(results)),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Public API – Image search
+# ---------------------------------------------------------------------------
+
+
+def search_images(query: str, page: int = 1, language: str = "en") -> dict:
+    """
+    Image search via SearXNG.
+
+    Each result contains: title, url (page), img_src (full image),
+    thumbnail_src, source/engine, resolution, etc.
+    """
+    params = {
+        "q": query,
+        "categories": "images",
+        "pageno": page,
+        "language": language,
+    }
+
+    data = _query_searxng(params)
+
+    if data is None:
+        return _empty_response(query, page)
+
+    images = []
+    for r in data.get("results", []):
+        img_url = r.get("img_src", "") or r.get("url", "")
+        thumb = r.get("thumbnail_src", "") or r.get("thumbnail", "") or img_url
+        combined = f"{r.get('title', '')} {img_url}"
+        if not _is_safe(combined):
             continue
-    return results
+        images.append(
+            {
+                "title": r.get("title", ""),
+                "url": r.get("url", ""),  # page URL
+                "img_src": img_url,  # full-size image
+                "thumbnail": thumb,  # thumbnail
+                "source": r.get("source", r.get("engine", "")),
+                "resolution": r.get("resolution", ""),
+                "engine": r.get("engine", ""),
+            }
+        )
 
-# ----------------- Adult content filter -----------------
-def filter_adult_content(results):
-    adult_keywords = ['porn', 'xxx', 'adult', 'sex', 'nude', 'nsfw', 'mature']
-    filtered = []
+    return {
+        "results": images,
+        "suggestions": list(data.get("suggestions", [])),
+        "corrections": list(data.get("corrections", [])),
+        "query": query,
+        "page": page,
+        "number_of_results": data.get("number_of_results", len(images)),
+    }
 
-    for result in results:
-        title = result.get('title', '')
-        link = result.get('link', '')
-        description = result.get('description', '')
 
-        if not any(keyword in str(title).lower() or
-                   keyword in str(link).lower() or
-                   keyword in str(description).lower() for keyword in adult_keywords):
-            filtered.append(result)
+# ---------------------------------------------------------------------------
+# Public API – Video search
+# ---------------------------------------------------------------------------
 
-    return filtered
 
-# ----------------- Fetch with fallback -----------------
-async def fetch_web_with_fallback(query, max_results=10):
-    """Fetch from DuckDuckGo → Bing concurrently and filter adult content."""
-    timeout = httpx.Timeout(10.0)
-    async with httpx.AsyncClient(timeout=timeout) as client:
-        tasks = {
-            "duckduckgo": asyncio.create_task(
-                search_duckduckgo(client, query, max_results)
-            ),
-            "bing": asyncio.create_task(search_bing(client, query, max_results)),
+def search_videos(query: str, page: int = 1, language: str = "en") -> dict:
+    """
+    Video search via SearXNG.
+
+    Each result contains: title, url, thumbnail, length, author/source, etc.
+    """
+    params = {
+        "q": query,
+        "categories": "videos",
+        "pageno": page,
+        "language": language,
+    }
+
+    data = _query_searxng(params)
+
+    if data is None:
+        return _empty_response(query, page)
+
+    videos = []
+    for r in data.get("results", []):
+        combined = f"{r.get('title', '')} {r.get('url', '')}"
+        if not _is_safe(combined):
+            continue
+        videos.append(
+            {
+                "title": r.get("title", ""),
+                "url": r.get("url", ""),
+                "thumbnail": (
+                    r.get("thumbnail", "")
+                    or r.get("img_src", "")
+                    or r.get("thumbnail_src", "")
+                ),
+                "length": r.get("length", ""),
+                "author": r.get("author", ""),
+                "source": r.get("source", r.get("engine", "")),
+                "engine": r.get("engine", ""),
+                "publishedDate": r.get("publishedDate", ""),
+                "content": r.get("content", ""),
+                "iframe_src": r.get("iframe_src", ""),
+            }
+        )
+
+    return {
+        "results": videos,
+        "suggestions": list(data.get("suggestions", [])),
+        "corrections": list(data.get("corrections", [])),
+        "query": query,
+        "page": page,
+        "number_of_results": data.get("number_of_results", len(videos)),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Public API – News search
+# ---------------------------------------------------------------------------
+
+
+def search_news(query: str, page: int = 1, language: str = "en") -> dict:
+    """News search via SearXNG."""
+    params = {
+        "q": query,
+        "categories": "news",
+        "pageno": page,
+        "language": language,
+    }
+
+    data = _query_searxng(params)
+
+    if data is None:
+        return _empty_response(query, page)
+
+    news = []
+    for r in data.get("results", []):
+        combined = f"{r.get('title', '')} {r.get('url', '')}"
+        if not _is_safe(combined):
+            continue
+        news.append(
+            {
+                "title": r.get("title", ""),
+                "link": r.get("url", ""),
+                "description": r.get("content", ""),
+                "source": r.get("source", r.get("engine", "")),
+                "engine": r.get("engine", ""),
+                "publishedDate": r.get("publishedDate", ""),
+                "thumbnail": r.get("thumbnail", "") or r.get("img_src", ""),
+            }
+        )
+
+    return {
+        "results": news,
+        "suggestions": list(data.get("suggestions", [])),
+        "corrections": list(data.get("corrections", [])),
+        "query": query,
+        "page": page,
+        "number_of_results": data.get("number_of_results", len(news)),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Public API – Wiki / Infobox lookup
+# ---------------------------------------------------------------------------
+
+
+def search_wiki(query: str, language: str = "en") -> dict:
+    """
+    Fetch infoboxes and answers for a query (used by the /wiki route).
+    Queries the 'general' category and extracts infoboxes + answers.
+    Also queries Wikipedia engine specifically.
+    """
+    params = {
+        "q": query,
+        "categories": "general",
+        "pageno": 1,
+        "language": language,
+        "engines": "wikipedia,wikidata,duckduckgo",
+    }
+
+    data = _query_searxng(params)
+
+    if data is None:
+        return {
+            "infoboxes": [],
+            "answers": [],
+            "results": [],
+            "suggestions": [],
+            "query": query,
         }
 
-        results = []
-        for engine, task in tasks.items():
-            try:
-                engine_results = await task
-                filtered = filter_adult_content(engine_results)
-                if filtered:
-                    print(f"Fetched {len(filtered)} results from {engine}")
-                    results.extend(filtered)
-            except Exception as e:
-                print(f"Error fetching {engine}: {e}")
-
-        return results
-
-def fetch_all_brave_web(query, page=1):
-    """Scrape Brave Search organic results with descriptions (no API key)."""
-    all_results = []
-    # Brave uses offset for pagination (0-based)
-    offset = (page - 1) * 10
-    params = {"q": query, "source": "web", "offset": offset}
-
-    try:
-        resp = requests.get("https://search.brave.com/search", headers=HEADERS, params=params, timeout=15)
-        resp.raise_for_status()
-        soup = BeautifulSoup(resp.text, "html.parser")
-        hits = soup.select(".snippet")
-
-        for r in hits:
-            # Title and link
-            title_elem = r.select_one(".snippet-title")
-            link_elem = r.select_one(".result-header")
-
-            if title_elem and link_elem:
-                title = title_elem.get_text(strip=True)
-                link = link_elem.get("href")
-
-                # Description from snippet content
-                desc_elem = (r.select_one(".snippet-description") or
-                           r.select_one(".snippet-content") or
-                           r.select_one("p"))
-                description = desc_elem.get_text(strip=True) if desc_elem else ""
-
-                all_results.append({
-                    "title": title,
-                    "link": link,
-                    "description": description
-                })
-
-    except Exception as e:
-        print(f"Error fetching Brave results for page {page}: {e}")
-
-    return all_results
+    return {
+        "infoboxes": list(data.get("infoboxes", [])),
+        "answers": list(data.get("answers", [])),
+        "results": [
+            {
+                "title": r.get("title", ""),
+                "link": r.get("url", ""),
+                "description": r.get("content", ""),
+                "engine": r.get("engine", ""),
+            }
+            for r in data.get("results", [])[:5]
+        ],
+        "suggestions": list(data.get("suggestions", [])),
+        "query": query,
+    }
 
 
-# ----------------- Example usage -----------------
-def main(query, page=1):
-    all_results = asyncio.run(fetch_web_with_fallback(query, max_results=5))
-    return all_results
+# ---------------------------------------------------------------------------
+# Backward-compatible main() for existing code
+# ---------------------------------------------------------------------------
+
+
+def main(query: str, page: int = 1) -> list[dict]:
+    """
+    Backward-compatible entry point.
+    Returns a flat list of result dicts with {title, link, description}.
+    """
+    data = search_web(query, page)
+    return data.get("results", [])
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _empty_response(query: str, page: int) -> dict:
+    return {
+        "results": [],
+        "suggestions": [],
+        "corrections": [],
+        "infoboxes": [],
+        "answers": [],
+        "query": query,
+        "page": page,
+        "number_of_results": 0,
+    }
+
+
+def _filter_results_normalised(results: list[dict]) -> list[dict]:
+    """Filter normalised results (with 'link' key instead of 'url')."""
+    safe = []
+    for r in results:
+        combined = " ".join(str(r.get(k, "")) for k in ("title", "link", "description"))
+        if _is_safe(combined):
+            safe.append(r)
+    return safe

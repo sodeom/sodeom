@@ -375,6 +375,241 @@ footer a {
     padding: 0.35rem 0.2rem;
   }
 }
+/* ── Search tab navigation active state ── */
+.search-nav a.active-tab {
+  color: var(--brand);
+  font-weight: 700;
+  border-bottom: 2px solid var(--brand);
+  padding-bottom: 2px;
+}
+
+/* ── Spell correction ── */
+.search-correction {
+  background: #1a2235;
+  border: 1px solid #2d3a4f;
+  border-radius: 0.5rem;
+  padding: 0.6rem 1rem;
+  margin: 0.75rem 0 1rem;
+  font-size: 0.97rem;
+  color: #d1d5db;
+}
+.search-correction a {
+  color: #60a5fa;
+  font-style: italic;
+  font-weight: 600;
+}
+.search-correction a:hover {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+/* ── Instant answers ── */
+.instant-answer {
+  margin: 0.75rem 0 1.25rem;
+}
+.answer-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: #0f2a1e;
+  border: 1px solid #10b981;
+  border-radius: 0.65rem;
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 0.6rem;
+  color: #d1fae5;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.answer-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Infobox / Knowledge panel ── */
+.infobox-card {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  margin: 0.75rem 0 1.5rem;
+}
+.infobox-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+.infobox-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 1px solid #1f2937;
+  flex-shrink: 0;
+}
+.infobox-title {
+  margin: 0 0 0.2rem;
+  font-size: 1.25rem;
+  color: var(--brand);
+}
+.infobox-type {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #9ca3af;
+  text-transform: capitalize;
+}
+.infobox-content {
+  color: #d1d5db;
+  font-size: 0.97rem;
+  line-height: 1.6;
+  margin: 0.5rem 0 0.75rem;
+}
+.infobox-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+}
+.infobox-table tr {
+  border-bottom: 1px solid #1f2937;
+}
+.infobox-table th {
+  text-align: left;
+  padding: 0.4rem 0.75rem 0.4rem 0;
+  color: #9ca3af;
+  font-weight: 500;
+  width: 35%;
+  vertical-align: top;
+}
+.infobox-table td {
+  padding: 0.4rem 0;
+  color: #e5e7eb;
+  vertical-align: top;
+}
+.infobox-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  align-items: center;
+}
+.infobox-links a {
+  background: #1f2937;
+  color: var(--brand);
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  border: 1px solid #374151;
+  transition: background 0.15s;
+}
+.infobox-links a:hover {
+  background: #374151;
+  color: var(--brand-hover);
+}
+
+/* ── Search suggestions chips ── */
+.search-suggestions {
+  margin: 1.5rem 0 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.suggestions-label {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  margin-right: 0.25rem;
+}
+.suggestion-chip {
+  display: inline-block;
+  background: #1f2937;
+  color: #d1d5db;
+  border: 1px solid #374151;
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.88rem;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+.suggestion-chip:hover {
+  background: #374151;
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+/* ── Result engines badge ── */
+.result-engines {
+  display: block;
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-top: 0.2rem;
+}
+.result-url {
+  display: block;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin-bottom: 0.25rem;
+  word-break: break-all;
+}
+
+/* ── No results ── */
+.no-results {
+  color: #9ca3af;
+  padding: 1rem;
+  text-align: center;
+}
+
+/* ── Image grid (SearXNG images) ── */
+.image-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.85rem;
+  padding: 0;
+  margin: 1rem 0;
+}
+.image-item {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 0.6rem;
+  overflow: hidden;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+.image-item:hover {
+  border-color: var(--brand);
+  transform: translateY(-2px);
+}
+.image-item a {
+  display: block;
+  text-decoration: none;
+}
+.image-item img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  display: block;
+}
+.image-caption {
+  display: block;
+  padding: 0.35rem 0.5rem 0.1rem;
+  font-size: 0.78rem;
+  color: #d1d5db;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.image-source {
+  display: block;
+  padding: 0 0.5rem 0.4rem;
+  font-size: 0.72rem;
+  color: #6b7280;
+}
+
 /* Results list styling */
 .results-list {
   list-style: none;

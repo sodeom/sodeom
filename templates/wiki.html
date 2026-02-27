@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %}{{ query or 'WikiReader' }} - Sodi{%
+{% extends "base.html" %} {% block title %}{{ query or 'Wiki' }} - Sodeom{%
 endblock %} {% block head_extra %}
 <link rel="canonical" href="https://sodeom.com/wiki/{{ query }}" />
 <script type="application/ld+json">
@@ -11,9 +11,9 @@ endblock %} {% block head_extra %}
   }
 </script>
 {% endblock %} {% block header %}
-<img src="/favicon.ico" alt="Sodi Logo" width="48" height="48" />
-<h1>Sodi Wiki Reader</h1>
-<p>Private, fast &amp; clean searching.</p>
+<img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
+<h1>Sodeom Wiki &amp; Knowledge</h1>
+<p>Private, fast &amp; clean knowledge search.</p>
 
 <form class="search-form" role="search" method="GET" action="/wiki/">
   <input
@@ -27,15 +27,113 @@ endblock %} {% block head_extra %}
   />
   <button class="btn-primary" type="submit">Search</button>
 </form>
-{% endblock %} {% block content %} {% if query %}
-<h2 class="page-title">Query: {{ query }}</h2>
-{% endif %} {% if paragraph %}
-<section id="wiki-container" class="content-card">
-  <div id="wiki-content">{{ paragraph|safe }}</div>
-</section>
+
+{% if query %}
+<nav class="search-nav">
+  <a href="/?q={{ query | urlencode }}">Web</a> |
+  <a href="/images?q={{ query | urlencode }}">Images</a> |
+  <a href="/videos?q={{ query | urlencode }}">Videos</a> |
+  <a href="/news?q={{ query | urlencode }}">News</a> |
+  <a href="/wiki/{{ query | urlencode }}" class="active-tab">Wiki</a>
+</nav>
+{% endif %} {% endblock %} {% block content %} {% if query %}
+<h2 class="page-title">Knowledge: {{ query }}</h2>
+{% endif %} {% if query %} {# ── Instant Answers ── #} {% if answers %}
+<div class="instant-answer" style="margin-bottom: 1.5rem">
+  {% for answer in answers %}
+  <div class="answer-box">
+    <span class="answer-icon">⚡</span>
+    <span>{{ answer }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %} {# ── Infoboxes / Knowledge Panels ── #} {% if infoboxes %} {% for
+box in infoboxes %}
+<div class="infobox-card" style="margin-bottom: 1.5rem">
+  <div class="infobox-header">
+    {% if box.img_src %}
+    <img src="{{ box.img_src }}" alt="{{ box.id or '' }}" class="infobox-img" />
+    {% endif %}
+    <div>
+      <h3 class="infobox-title">{{ box.id or box.title or query }}</h3>
+      {% if box.infobox %}
+      <p class="infobox-type">{{ box.infobox }}</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if box.content %}
+  <p class="infobox-content">{{ box.content }}</p>
+  {% endif %} {% if box.attributes %}
+  <table class="infobox-table">
+    {% for attr in box.attributes %} {% if attr.label and attr.value %}
+    <tr>
+      <th>{{ attr.label }}</th>
+      <td>{{ attr.value }}</td>
+    </tr>
+    {% endif %} {% endfor %}
+  </table>
+  {% endif %} {% if box.urls %}
+  <div class="infobox-links">
+    <strong style="color: #9ca3af; font-size: 0.9rem">Learn more:</strong>
+    {% for u in box.urls %}
+    <a href="{{ u.url }}" target="_blank" rel="noopener noreferrer"
+      >{{ u.title or u.url }}</a
+    >
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endfor %} {% elif results %} {# ── Fallback: show top web results if no
+infoboxes ── #}
+<div class="content-card" style="margin-bottom: 1.5rem">
+  <h3 style="color: #10b981; margin-top: 0">Top Results for "{{ query }}"</h3>
+  <ul class="results-list" style="margin: 0">
+    {% for result in results %}
+    <li>
+      <h5>
+        <a href="{{ result.link }}" target="_blank" rel="noopener noreferrer">
+          {{ result.title }}
+        </a>
+      </h5>
+      <small style="color: #9ca3af">{{ result.link }}</small><br />
+      <small class="description-small">{{ result.description }}</small>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+
 {% else %}
 <div class="content-card">
-  <p>Search for a topic to see details.</p>
+  <p>
+    No knowledge panel found for "{{ query }}". Try a more specific search term.
+  </p>
+  <p style="margin-top: 0.75rem">
+    <a href="/?q={{ query | urlencode }}">Search the web for "{{ query }}"</a>
+  </p>
+</div>
+{% endif %} {# ── Suggestions ── #} {% if suggestions %}
+<div class="search-suggestions">
+  <span class="suggestions-label">Related topics:</span>
+  {% for suggestion in suggestions %}
+  <a href="/wiki/{{ suggestion | urlencode }}" class="suggestion-chip"
+    >{{ suggestion }}</a
+  >
+  {% endfor %}
+</div>
+{% endif %} {% else %}
+<div class="content-card">
+  <h2 class="page-title">Knowledge Search</h2>
+  <p class="page-subtitle">
+    Search for any topic to get a knowledge panel with facts, summaries, and
+    links.
+  </p>
+  <ul style="color: #6ee7b7; margin: 1em 0 0 1.2em">
+    <li>Wikipedia summaries &amp; infoboxes</li>
+    <li>Wikidata facts &amp; attributes</li>
+    <li>Instant answers</li>
+    <li>Related topic suggestions</li>
+  </ul>
 </div>
 {% endif %}
 
@@ -44,4 +142,5 @@ endblock %} {% block head_extra %}
     .querySelectorAll("img")
     .forEach((img) => img.setAttribute("loading", "lazy"));
 </script>
+
 {% endblock %}

@@ -1,0 +1,280 @@
+{% extends "base.html" %} {% block title %}{% if query %}{{ query }} - {% endif
+%}Video Search - Sodeom{% endblock %} {% block head_extra %}
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="robots" content="index, follow" />
+<meta
+  name="description"
+  content="Sodeom Video Search – find videos privately without tracking or ads."
+/>
+<meta
+  name="keywords"
+  content="private video search, anonymous video search, privacy-focused search"
+/>
+<link rel="canonical" href="https://sodeom.com/videos" />
+{% endblock %} {% block header %}
+<img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
+<h1>Sodeom Video Search</h1>
+<p>Private, fast &amp; clean video search.</p>
+
+<form class="search-form" method="GET" role="search">
+  <input
+    type="text"
+    name="q"
+    placeholder="Search videos privately..."
+    value="{{ query or '' }}"
+    required
+  />
+  <button class="btn-primary" type="submit">Search</button>
+</form>
+
+{% if query %}
+<nav class="search-nav">
+  <a href="/?q={{ query | urlencode }}">Web</a> |
+  <a href="/images?q={{ query | urlencode }}">Images</a> |
+  <a href="/videos?q={{ query | urlencode }}" class="active-tab">Videos</a> |
+  <a href="/news?q={{ query | urlencode }}">News</a> |
+  <a href="/wiki/{{ query | urlencode }}">Wiki</a>
+  {% if has_prev %} |
+  <a href="/videos?q={{ query | urlencode }}&amp;page={{ page - 1 }}">← Prev</a
+  >{% endif %} {% if has_next %} |
+  <a href="/videos?q={{ query | urlencode }}&amp;page={{ page + 1 }}">Next →</a
+  >{% endif %}
+</nav>
+{% endif %} {% endblock %} {% block content %} {% if corrections %}
+<div class="search-correction">
+  Did you mean: {% for correction in corrections %}
+  <a href="/videos?q={{ correction | urlencode }}">{{ correction }}</a>{% if not
+  loop.last %}, {% endif %} {% endfor %}
+</div>
+{% endif %} {% if query %}
+<h2 class="page-title">Video Results</h2>
+<p class="page-subtitle">
+  Showing results for "{{ query }}"{% if total_results %} — {{ total_results }}
+  results{% endif %}.
+</p>
+
+{% if videos %}
+<ul class="video-list">
+  {% for video in videos %}
+  <li class="video-item">
+    <a
+      href="{{ video.url }}"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="video-link"
+    >
+      <div class="video-thumb-wrap">
+        {% if video.thumbnail %}
+        <img
+          src="{{ video.thumbnail }}"
+          alt="{{ video.title or 'Video thumbnail' }}"
+          class="video-thumb"
+          loading="lazy"
+          onerror="
+            this.style.display = 'none';
+            this.nextElementSibling.style.display = 'flex';
+          "
+        />
+        <div class="video-thumb-placeholder" style="display: none">▶</div>
+        {% else %}
+        <div class="video-thumb-placeholder">▶</div>
+        {% endif %} {% if video.length %}
+        <span class="video-duration">{{ video.length }}</span>
+        {% endif %}
+      </div>
+      <div class="video-info">
+        <h3 class="video-title">{{ video.title or 'Untitled' }}</h3>
+        {% if video.author %}
+        <p class="video-author">
+          <span class="video-author-icon">👤</span> {{ video.author }}
+        </p>
+        {% endif %} {% if video.publishedDate %}
+        <p class="video-date">📅 {{ video.publishedDate }}</p>
+        {% endif %} {% if video.content %}
+        <p class="video-desc">{{ video.content | truncate(160) }}</p>
+        {% endif %}
+        <p class="video-source">
+          <span class="source-badge"
+            >{{ video.source or video.engine or 'Video' }}</span
+          >
+          <span class="video-url-small">{{ video.url | truncate(60) }}</span>
+        </p>
+      </div>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="content-card">
+  <p>No video results found for "{{ query }}". Try different keywords.</p>
+</div>
+{% endif %} {% if suggestions %}
+<div class="search-suggestions">
+  <span class="suggestions-label">Related searches:</span>
+  {% for suggestion in suggestions %}
+  <a href="/videos?q={{ suggestion | urlencode }}" class="suggestion-chip"
+    >{{ suggestion }}</a
+  >
+  {% endfor %}
+</div>
+{% endif %} {% else %}
+<div class="content-card">
+  <h2 class="page-title">Search videos privately</h2>
+  <p class="page-subtitle">
+    Enter a query above to find videos without tracking.
+  </p>
+  <ul style="color: #6ee7b7; margin: 1em 0 0 1.2em">
+    <li>Results from YouTube, Vimeo, Dailymotion &amp; more</li>
+    <li>No watch history stored</li>
+    <li>No personalized recommendations</li>
+  </ul>
+</div>
+{% endif %}
+
+<style>
+  .video-list {
+    list-style: none;
+    padding: 0;
+    margin: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .video-item {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition:
+      border-color 0.15s ease,
+      transform 0.15s ease;
+  }
+
+  .video-item:hover {
+    border-color: #10b981;
+    transform: translateY(-2px);
+  }
+
+  .video-link {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .video-thumb-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 200px;
+    height: 112px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background: #0b1220;
+  }
+
+  .video-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem;
+  }
+
+  .video-thumb-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: #10b981;
+    background: #0f172a;
+    border-radius: 0.5rem;
+  }
+
+  .video-duration {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    font-size: 0.78rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .video-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .video-title {
+    margin: 0 0 0.4rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #10b981;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .video-item:hover .video-title {
+    color: #34d399;
+    text-decoration: underline;
+  }
+
+  .video-author,
+  .video-date,
+  .video-desc {
+    margin: 0.2rem 0;
+    font-size: 0.88rem;
+    color: #9ca3af;
+  }
+
+  .video-desc {
+    color: #d1d5db;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .video-source {
+    margin: 0.4rem 0 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .source-badge {
+    background: #1f2937;
+    color: #10b981;
+    font-size: 0.78rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .video-url-small {
+    font-size: 0.78rem;
+    color: #6b7280;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 600px) {
+    .video-link {
+      flex-direction: column;
+    }
+    .video-thumb-wrap {
+      width: 100%;
+      height: 180px;
+    }
+  }
+</style>
+
+{% endblock %}

@@ -20,9 +20,13 @@
         <h1>Sodeom - Private Search Engine</h1>
         <p>Private search with zero tracking and minimal filtering.</p>
         <nav>
-          <a href="/">Search</a> | <a href="/images">Images</a> |
-          <a href="/upgrade" style="color: #10b981; font-weight: bold;">Upgrade to Pro</a> |
-          <a href="/privacy-policy">Privacy</a> |
+          <a href="/">Web</a> | <a href="/images">Images</a> |
+          <a href="/videos">Videos</a> | <a href="/news">News</a> |
+          <a href="/services">Services</a> |
+          <a href="/upgrade" style="color: #10b981; font-weight: bold"
+            >Upgrade to Pro</a
+          >
+          | <a href="/privacy-policy">Privacy</a> |
           <a href="/contact">Contact</a>
         </nav>
         {% endblock %}
@@ -56,7 +60,7 @@
         </div>
         <div class="footer-meta">
           <span class="beta-badge">Beta</span><br />
-          <small>© 2026 Sodeom. Independent Privacy Search.</small><br />
+          <small>&copy; 2026 Sodeom. Independent Privacy Search.</small><br />
           <small>Built by Abdul Hadi.</small>
         </div>
       </div>
@@ -92,7 +96,7 @@
     <!-- Stripe Integration -->
     <script src="https://js.stripe.com/v3/"></script>
     <script>
-      const stripePublishableKey = "{{ stripe_publishable_key }}";
+      const stripePublishableKey = {{ stripe_publishable_key | tojson }};
     </script>
     {% endif %}
   </body>

@@ -1,10 +1,10 @@
-{% extends "base.html" %} {% block title %}Image Search - Sodi{% endblock %} {%
-block head_extra %}
+{% extends "base.html" %} {% block title %}Image Search - Sodeom{% endblock %}
+{% block head_extra %}
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="robots" content="index, follow" />
 <meta
   name="description"
-  content="Sodi Search Engine – the private, fast, and clean way to find images without tracking or ads."
+  content="Sodeom Search Engine – the private, fast, and clean way to find images without tracking or ads."
 />
 <meta
   name="keywords"
@@ -22,9 +22,9 @@ block head_extra %}
   }
 </script>
 {% endblock %} {% block header %}
-<img src="/favicon.ico" alt="Sodi Logo" width="48" height="48" />
-<h1>Sodi Image Search</h1>
-<p>Private, fast & clean image search.</p>
+<img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
+<h1>Sodeom Image Search</h1>
+<p>Private, fast &amp; clean image search.</p>
 
 <form class="search-form" method="GET" role="search">
   <input
@@ -39,27 +39,67 @@ block head_extra %}
 
 {% if query %}
 <nav class="search-nav">
-  <a href="/?q={{ query }}">Web Results</a> |
-  <a href="/images?q={{ query }}">Images</a> |
-  <a href="/wiki/{{ query }}">Details</a>
+  <a href="/?q={{ query | urlencode }}">Web</a> |
+  <a href="/images?q={{ query | urlencode }}" class="active-tab">Images</a> |
+  <a href="/videos?q={{ query | urlencode }}">Videos</a> |
+  <a href="/news?q={{ query | urlencode }}">News</a> |
+  <a href="/wiki/{{ query | urlencode }}">Wiki</a>
+  {% if has_prev %} |
+  <a href="/images?q={{ query | urlencode }}&amp;page={{ page - 1 }}">← Prev</a
+  >{% endif %} {% if has_next %} |
+  <a href="/images?q={{ query | urlencode }}&amp;page={{ page + 1 }}">Next →</a
+  >{% endif %}
 </nav>
-{% endif %} {% endblock %} {% block content %} {% if query %}
+{% endif %} {% endblock %} {% block content %} {% if corrections %}
+<div class="search-correction">
+  Did you mean: {% for correction in corrections %}
+  <a href="/images?q={{ correction | urlencode }}">{{ correction }}</a>{% if not
+  loop.last %}, {% endif %} {% endfor %}
+</div>
+{% endif %} {% if query %}
 <h2 class="page-title">Image Results</h2>
-<p class="page-subtitle">Showing results for “{{ query }}”.</p>
+<p class="page-subtitle">
+  Showing results for "{{ query }}"{% if total_results %} — {{ total_results }}
+  results{% endif %}.
+</p>
 
 {% if images %}
-<ul class="image-list">
+<ul class="image-grid">
   {% for image in images %}
-  <li>
-    <a href="{{ image }}" target="_blank" rel="noopener noreferrer">
-      <img src="{{ image }}" alt="Image preview" />
+  <li class="image-item">
+    <a
+      href="{{ image.url or image.img_src }}"
+      target="_blank"
+      rel="noopener noreferrer"
+      title="{{ image.title or '' }}"
+    >
+      <img
+        src="{{ image.thumbnail or image.img_src }}"
+        alt="{{ image.title or 'Image result' }}"
+        loading="lazy"
+        onerror="this.closest('li').style.display = 'none'"
+      />
+      {% if image.title %}
+      <span class="image-caption">{{ image.title | truncate(60) }}</span>
+      {% endif %} {% if image.source %}
+      <span class="image-source">{{ image.source }}</span>
+      {% endif %}
     </a>
   </li>
   {% endfor %}
 </ul>
 {% else %}
 <div class="content-card">
-  <p>No image results found for “{{ query }}”.</p>
+  <p>No image results found for "{{ query }}".</p>
+</div>
+{% endif %} {% if suggestions %}
+<div class="search-suggestions">
+  <span class="suggestions-label">Related searches:</span>
+  {% for suggestion in suggestions %}
+  <a href="/images?q={{ suggestion | urlencode }}" class="suggestion-chip"
+    >{{ suggestion }}</a
+  >
+  {% endfor %}
 </div>
 {% endif %} {% else %}
 <div class="content-card">
