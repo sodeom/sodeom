@@ -101,7 +101,7 @@ _SEARXNG_SETTINGS = os.path.join(
     os.path.dirname(__file__), "searxng_src", "settings_local.yml"
 )
 _SEARXNG_PYTHON = os.path.join(
-    os.path.dirname(__file__), "searxng_src", ".venv", "bin", "python"
+    os.path.dirname(__file__), ".venv", "bin", "python"
 )
 
 
