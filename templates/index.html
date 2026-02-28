@@ -70,7 +70,6 @@ endblock %} {% block head_extra %}
   }
 </script>
 {% endblock %} {% block header %}
-
 <img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
 <h1>
   Sodeom <span class="beta-badge">Beta</span> – Private Search Without Tracking
@@ -106,106 +105,6 @@ endblock %} {% block head_extra %}
   {% if query_error %}{{ query_error }}{% endif %}
 </p>
 
-<section class="about-section">
-  <h2>About Sodeom</h2>
-  <p>
-    Sodeom is an independent privacy-focused search engine. No tracking. No
-    profiling. No behavioral manipulation. Built by Abdul Hadi.
-    <a href="https://github.com/sodeom" rel="noopener" target="_blank"
-      >GitHub</a
-    >
-  </p>
-  <ul style="margin: 0.7em 0 0 1.2em; color: #6ee7b7">
-    <li>No user accounts required</li>
-    <li>No search history stored</li>
-    <li>No targeted ads</li>
-  </ul>
-</section>
-
-<section
-  class="pro-offer"
-  style="
-    background: #181f2a;
-    border-radius: 0.75rem;
-    margin: 2em 0 1.5em 0;
-    padding: 1.5em 1.5em 1.2em 1.5em;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.07);
-    border: 1px solid #232a3a;
-    text-align: center;
-  "
->
-  <h2 style="color: #10b981; margin-top: 0; font-size: 1.35rem">
-    🚀 Sodeom Pro – Privacy First Search
-  </h2>
-  <p style="color: #e5e7eb; font-size: 1.08em; margin: 0.5em 0 1.2em 0">
-    Enjoy unlimited searches & AI summaries.<br />
-    <span style="color: #6ee7b7; font-size: 0.98em">No tracking, ever.</span>
-  </p>
-  <ul
-    style="
-      list-style: none;
-      padding: 0;
-      margin: 0 0 1.2em 0;
-      color: #a7f3d0;
-      font-size: 1.05em;
-    "
-  >
-    <li>✅ No ads</li>
-    <li>✅ Unlimited AI summaries</li>
-    <li>✅ Advanced filters & themes</li>
-    <li>✅ Early access to new features</li>
-  </ul>
-  <div style="margin: 1.2em 0 0.7em 0">
-    <span
-      style="
-        background: #232a3a;
-        color: #fbbf24;
-        border-radius: 5px;
-        padding: 0.25em 0.7em;
-        font-weight: 600;
-        font-size: 1.08em;
-      "
-      >Regularly $5/month →
-      <span style="color: #10b981">Today only $2.99/month</span></span
-    >
-  </div>
-  <div style="margin: 0.5em 0 1.1em 0">
-    <span
-      style="
-        background: #232a3a;
-        color: #a7f3d0;
-        border-radius: 5px;
-        padding: 0.25em 0.7em;
-        font-size: 1em;
-      "
-      >🎯 <b>Founding Member:</b> $19 Lifetime
-      <span id="spots-left" style="color: #f87171">(100 spots)</span></span
-    >
-  </div>
-  <button
-    style="
-      background: linear-gradient(90deg, #10b981 60%, #34d399 100%);
-      color: #181f2a;
-      font-weight: 700;
-      font-size: 1.1em;
-      border: none;
-      border-radius: 7px;
-      padding: 0.7em 2.2em;
-      margin-top: 0.5em;
-      cursor: pointer;
-      box-shadow: 0 1px 4px rgba(16, 185, 129, 0.13);
-    "
-  >
-    Upgrade to Pro
-  </button>
-  <p style="color: #a7f3d0; font-size: 0.98em; margin: 1.2em 0 0 0">
-    $2.99/month = $35.88/year &nbsp;|&nbsp; Lifetime $19 → instant appeal
-  </p>
-  <p style="color: #fca5a5; font-size: 0.97em; margin: 0.5em 0 0 0">
-    Free: 5 AI summaries/day
-  </p>
-</section>
-
 {% if query %}
 <nav class="search-nav">
   <a href="/?q={{ query | urlencode }}" class="active-tab">Web</a> |
@@ -219,14 +118,15 @@ endblock %} {% block head_extra %}
   <a href="{{ url_for('index', q=query, page=page+1, b=b) }}">Next →</a>{% endif
   %}
 </nav>
-{% endif %} {% endblock %} {% block content %} {% if query %} {# ── Spell
-corrections ── #} {% if corrections %}
+{% endif %} {% endblock %} {% block content %} {# Spell corrections #} {% if
+corrections %}
 <div class="search-correction">
-  Did you mean: {% for correction in corrections %}
-  <a href="/?q={{ correction | urlencode }}">{{ correction }}</a>{% if not
-  loop.last %}, {% endif %} {% endfor %}
+  Did you mean: {% for correction in corrections %}<a
+    href="/?q={{ correction | urlencode }}"
+    >{{ correction }}</a
+  >{% if not loop.last %}, {% endif %}{% endfor %}
 </div>
-{% endif %} {# ── Instant answers ── #} {% if answers %}
+{% endif %} {# Instant answers #} {% if answers %}
 <div class="instant-answer">
   {% for answer in answers %}
   <div class="answer-box">
@@ -235,8 +135,8 @@ corrections ── #} {% if corrections %}
   </div>
   {% endfor %}
 </div>
-{% endif %} {# ── Infobox / Knowledge panel ── #} {% if infoboxes %} {% for box
-in infoboxes %}
+{% endif %} {# Infobox / Knowledge panel #} {% if infoboxes %} {% for box in
+infoboxes %}
 <div class="infobox-card">
   <div class="infobox-header">
     {% if box.img_src %}<img
@@ -255,24 +155,25 @@ in infoboxes %}
   <p class="infobox-content">{{ box.content }}</p>
   {% endif %} {% if box.attributes %}
   <table class="infobox-table">
-    {% for attr in box.attributes %} {% if attr.label and attr.value %}
+    {% for attr in box.attributes %}{% if attr.label and attr.value %}
     <tr>
       <th>{{ attr.label }}</th>
       <td>{{ attr.value }}</td>
     </tr>
-    {% endif %} {% endfor %}
+    {% endif %}{% endfor %}
   </table>
   {% endif %} {% if box.urls %}
   <div class="infobox-links">
-    {% for u in box.urls %}
-    <a href="{{ u.url }}" target="_blank" rel="noopener noreferrer"
+    {% for u in box.urls %}<a
+      href="{{ u.url }}"
+      target="_blank"
+      rel="noopener noreferrer"
       >{{ u.title or u.url }}</a
-    >
-    {% endfor %}
+    >{% endfor %}
   </div>
   {% endif %}
 </div>
-{% endfor %} {% endif %} {# ── Web results ── #}
+{% endfor %} {% endif %} {# Web results #}
 <ul class="results-list" role="list" aria-label="Search results">
   {% if results %} {% for result in results %}
   <li role="listitem">
@@ -281,16 +182,15 @@ in infoboxes %}
         href="{{ result.link }}"
         rel="noopener noreferrer"
         aria-label="Open search result: {{ result.title }}"
+        >{{ result.title }}</a
       >
-        {{ result.title }}
-      </a>
     </h5>
     <small class="result-url">{{ result.pretty_url or result.link }}</small
     ><br />
     <small class="description-small">{{ result.description }}</small>
-    {% if result.engines %}
-    <small class="result-engines">via {{ result.engines | join(', ') }}</small>
-    {% endif %}
+    {% if result.engines %}<small class="result-engines"
+      >via {{ result.engines | join(', ') }}</small
+    >{% endif %}
   </li>
   {% endfor %} {% else %}
   <li class="no-results">
@@ -299,16 +199,60 @@ in infoboxes %}
   {% endif %}
 </ul>
 
-{# ── Suggestions ── #} {% if suggestions %}
+{# Suggestions #} {% if suggestions %}
 <div class="search-suggestions">
   <span class="suggestions-label">Related searches:</span>
-  {% for suggestion in suggestions %}
-  <a href="/?q={{ suggestion | urlencode }}" class="suggestion-chip"
+  {% for suggestion in suggestions %}<a
+    href="/?q={{ suggestion | urlencode }}"
+    class="suggestion-chip"
     >{{ suggestion }}</a
-  >
-  {% endfor %}
+  >{% endfor %}
 </div>
-{% endif %} {% endif %}
+{% endif %} {# About and Pro sections - only show when no query #} {% if not
+query %}
+<section class="about-section">
+  <h2>About Sodeom</h2>
+  <p>
+    Sodeom is an independent privacy-focused search engine. No tracking. No
+    profiling. No behavioral manipulation. Built by Abdul Hadi.
+    <a href="https://github.com/sodeom" rel="noopener" target="_blank"
+      >GitHub</a
+    >
+  </p>
+  <ul style="margin: 0.7em 0 0 1.2em; color: #6ee7b7">
+    <li>No user accounts required</li>
+    <li>No search history stored</li>
+    <li>No targeted ads</li>
+  </ul>
+</section>
+
+<section class="pro-offer">
+  <h2>🚀 Sodeom Pro – Privacy First Search</h2>
+  <p>
+    Enjoy unlimited searches & AI summaries.<br /><span
+      style="color: #6ee7b7; font-size: 0.98em"
+      >No tracking, ever.</span
+    >
+  </p>
+  <ul>
+    <li>✅ No ads</li>
+    <li>✅ Unlimited AI summaries</li>
+    <li>✅ Advanced filters & themes</li>
+    <li>✅ Early access to new features</li>
+  </ul>
+  <div>
+    <span class="price-tag"
+      >Regularly $5/month → <span>Today only $2.99/month</span></span
+    >
+  </div>
+  <div>
+    <span>🎯 <b>Founding Member:</b> $19 Lifetime</span>
+  </div>
+  <button>Upgrade to Pro</button>
+  <p>$2.99/month = $35.88/year &nbsp;|&nbsp; Lifetime $19 → instant appeal</p>
+  <p>Free: 5 AI summaries/day</p>
+</section>
+{% endif %}
 
 <script>
   (function () {
@@ -334,7 +278,6 @@ in infoboxes %}
         input.focus();
         return;
       }
-
       showError("");
       submit.disabled = true;
       loading.hidden = false;
