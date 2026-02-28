@@ -70,6 +70,13 @@ def _get_instances():
 # ---------------------------------------------------------------------------
 # Low-level query helper
 # ---------------------------------------------------------------------------
+# Proxy configuration
+PROXY_URL = "https://allow-cors.abdulhadijunaidahmedkhan.workers.dev/?url="
+
+PROXIES = {
+    "http": PROXY_URL,
+    "https": PROXY_URL,
+}
 
 
 def _query_searxng(params: dict, timeout: int = 12) -> dict | None:
@@ -83,7 +90,8 @@ def _query_searxng(params: dict, timeout: int = 12) -> dict | None:
     for base_url in _get_instances():
         try:
             url = f"{base_url}/search"
-            resp = requests.get(url, params=params, headers=HEADERS, timeout=timeout)
+            # Use proxy for all requests
+            resp = requests.get(url, params=params, headers=HEADERS, timeout=timeout, proxies=PROXIES)
             resp.raise_for_status()
             data = resp.json()
             if isinstance(data, dict):

@@ -46,6 +46,10 @@ outgoing:
   pool_connections: 100
   pool_maxsize: 20
   enable_http2: true
+  # Proxy configuration
+  proxies:
+    http: "https://allow-cors.abdulhadijunaidahmedkhan.workers.dev/?url="
+    https: "https://allow-cors.abdulhadijunaidahmedkhan.workers.dev/?url="
 
 engines:
   - name: google
