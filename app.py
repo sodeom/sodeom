@@ -100,9 +100,7 @@ _SEARXNG_PROC = None
 _SEARXNG_SETTINGS = os.path.join(
     os.path.dirname(__file__), "searxng_src", "settings_local.yml"
 )
-_SEARXNG_PYTHON = os.path.join(
-    os.path.dirname(__file__), ".venv", "bin", "python"
-)
+_SEARXNG_PYTHON = os.path.join(os.path.dirname(__file__), ".venv", "bin", "python")
 
 
 def _start_searxng():
@@ -142,8 +140,9 @@ def _start_searxng():
         )
         print(f"[SearXNG] Started with PID {_SEARXNG_PROC.pid}")
 
-        # Wait up to 20 seconds for SearXNG to become ready
-        for i in range(20):
+        # Wait up to 60 seconds for SearXNG to become ready (engines need time to initialize)
+        startup_timeout = 60
+        for i in range(startup_timeout):
             time.sleep(1)
             try:
                 import urllib.request
@@ -153,7 +152,10 @@ def _start_searxng():
                 return
             except Exception:
                 pass
-        print("[SearXNG] Warning: did not become ready within 20s")
+        # If local SearXNG isn't ready, the app will automatically use fallback public instances
+        print(
+            "[SearXNG] Local instance not ready - will use fallback public SearXNG instances for search"
+        )
     except Exception as e:
         print(f"[SearXNG] Failed to start: {e}")
 
