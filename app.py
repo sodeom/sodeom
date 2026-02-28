@@ -189,14 +189,6 @@ client = OpenAI(base_url=GITHUB_ENDPOINT, api_key=GITHUB_TOKEN)
 # Maximum image download size: 10 MB
 MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
-# Proxy configuration
-PROXY_URL = "https://allow-cors.abdulhadijunaidahmedkhan.workers.dev/?url="
-
-PROXIES = {
-    "http": PROXY_URL,
-    "https": PROXY_URL,
-}
-
 
 def _is_safe_url(url: str) -> bool:
     """Block SSRF: reject private/internal IPs and non-http(s) schemes."""
@@ -238,7 +230,7 @@ def install_image(url: str, base_dir="placeholders") -> str | None:
 
     try:
         response = requests.get(
-            url, stream=True, timeout=10, headers=headers, allow_redirects=False, proxies=PROXIES
+            url, stream=True, timeout=10, headers=headers, allow_redirects=False
         )
         response.raise_for_status()
         content_type = response.headers.get("Content-Type", "")
