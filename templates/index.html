@@ -69,7 +69,49 @@ endblock %} {% block head_extra %}
     ]
   }
 </script>
-{% endblock %} {% block header %}
+{% endblock %} {% block header %} {% if query %} {# Compact header for search
+results page #}
+<div class="compact-header-row">
+  <a href="/" class="compact-logo">
+    <img src="/favicon.ico" alt="Sodeom Logo" width="36" height="36" />
+    <span>Sodeom</span>
+  </a>
+  <form
+    class="search-form compact-search-form"
+    method="GET"
+    role="search"
+    data-search-form=""
+  >
+    <input
+      type="text"
+      name="q"
+      placeholder="Search..."
+      value="{{ query }}"
+      maxlength="400"
+      autocapitalize="none"
+      autocomplete="off"
+      required
+    />
+    <button class="btn-primary" type="submit" data-search-submit>Search</button>
+    <span class="loading-indicator" data-loading hidden>Searching...</span>
+  </form>
+</div>
+<p class="form-error" data-search-error aria-live="polite">
+  {% if query_error %}{{ query_error }}{% endif %}
+</p>
+<nav class="search-nav">
+  <a href="/?q={{ query | urlencode }}" class="active-tab">Web</a> |
+  <a href="/images?q={{ query | urlencode }}">Images</a> |
+  <a href="/videos?q={{ query | urlencode }}">Videos</a> |
+  <a href="/news?q={{ query | urlencode }}">News</a> |
+  <a href="/wiki/{{ query | urlencode }}">Wiki</a>
+  {% if has_prev %} |
+  <a href="{{ url_for('index', q=query, page=page-1, b=b) }}">← Prev</a>{% endif
+  %} {% if has_next %} |
+  <a href="{{ url_for('index', q=query, page=page+1, b=b) }}">Next →</a>{% endif
+  %}
+</nav>
+{% else %} {# Full hero header for homepage #}
 <img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
 <h1>
   Sodeom <span class="beta-badge">Beta</span> – Private Search Without Tracking
@@ -87,7 +129,7 @@ endblock %} {% block head_extra %}
     type="text"
     name="q"
     placeholder="Search the web without tracking..."
-    value="{{ query }}"
+    value=""
     maxlength="400"
     autocapitalize="none"
     autocomplete="off"
@@ -104,22 +146,28 @@ endblock %} {% block head_extra %}
 <p class="form-error" data-search-error aria-live="polite">
   {% if query_error %}{{ query_error }}{% endif %}
 </p>
-
-{% if query %}
-<nav class="search-nav">
-  <a href="/?q={{ query | urlencode }}" class="active-tab">Web</a> |
-  <a href="/images?q={{ query | urlencode }}">Images</a> |
-  <a href="/videos?q={{ query | urlencode }}">Videos</a> |
-  <a href="/news?q={{ query | urlencode }}">News</a> |
-  <a href="/wiki/{{ query | urlencode }}">Wiki</a>
-  {% if has_prev %} |
-  <a href="{{ url_for('index', q=query, page=page-1, b=b) }}">← Prev</a>{% endif
-  %} {% if has_next %} |
-  <a href="{{ url_for('index', q=query, page=page+1, b=b) }}">Next →</a>{% endif
-  %}
-</nav>
-{% endif %} {% endblock %} {% block content %} {# Spell corrections #} {% if
-corrections %}
+{% endif %} {% endblock %} {% block content %} {% if query %}
+<div id="ai-answer-card" class="ai-answer-card" style="display: none">
+  <div class="ai-answer-header">
+    <span class="ai-answer-icon">✨</span>
+    <span class="ai-answer-label">AI Answer</span>
+    <span class="ai-answer-badge">Sodi AI</span>
+  </div>
+  <div class="ai-answer-body">
+    <div id="ai-answer-text" class="ai-answer-text">
+      <span class="ai-answer-loading">Generating answer…</span>
+    </div>
+  </div>
+  <div class="ai-answer-footer">
+    <span class="ai-answer-meta"
+      >Powered by Sodi AI &middot; Based on your query</span
+    >
+    <span class="ai-answer-disclaimer"
+      >AI can make mistakes &mdash; verify important info</span
+    >
+  </div>
+</div>
+{% endif %} {# Spell corrections #} {% if corrections %}
 <div class="search-correction">
   Did you mean: {% for correction in corrections %}<a
     href="/?q={{ correction | urlencode }}"
@@ -255,6 +303,46 @@ query %}
 {% endif %}
 
 <script>
+  // AI Answer fetch + typewriter
+  (function () {
+    var query = {{ query | tojson }};
+    var card = document.getElementById('ai-answer-card');
+    var textEl = document.getElementById('ai-answer-text');
+    if (!query || !card || !textEl) return;
+
+    card.style.display = 'block';
+
+    function typewrite(text) {
+      textEl.textContent = '';
+      var cursor = document.createElement('span');
+      cursor.className = 'ai-typing-cursor';
+      textEl.appendChild(cursor);
+      var i = 0;
+      var speed = Math.max(8, Math.min(22, Math.floor(3000 / text.length)));
+      var interval = setInterval(function () {
+        cursor.before(document.createTextNode(text[i++]));
+        if (i >= text.length) {
+          clearInterval(interval);
+          cursor.remove();
+        }
+      }, speed);
+    }
+
+    fetch('/ai?query=' + encodeURIComponent(query))
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.answer) {
+          typewrite(data.answer);
+        } else {
+          card.style.display = 'none';
+        }
+      })
+      .catch(function () {
+        card.style.display = 'none';
+      });
+  })();
+
+  // Search form
   (function () {
     var form = document.querySelector("[data-search-form]");
     var input = form ? form.querySelector("input[name='q']") : null;

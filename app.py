@@ -822,7 +822,25 @@ def fakesha256():
     return render_template("fake-sha256.html")
 
 
-# ads.txt
+@app.route("/ads.txt")
+def ads_txt():
+    return render_template("ads.txt"), 200, {"Content-Type": "text/plain"}
+
+
+@app.route("/cancel")
+def cancel():
+    return render_template("cancel.html")
+
+
+@app.route("/success")
+def success():
+    return render_template("success.html")
+
+
+@app.route("/metrics")
+def metrics():
+    return render_template("metrics.html", data=[])
+
 
 ### ── App Entry Point ─────────────────────────────────────────────────────────
 
