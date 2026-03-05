@@ -39,6 +39,23 @@ from results import (
 app = Flask(__name__)
 
 
+# ── Cache-busting: hash all CSS files so updates always reach the browser ──
+def _css_version() -> str:
+    import glob
+
+    h = hashlib.md5()
+    for f in sorted(glob.glob(os.path.join(app.static_folder, "*.css"))):
+        try:
+            with open(f, "rb") as fh:
+                h.update(fh.read())
+        except OSError:
+            pass
+    return h.hexdigest()[:8]
+
+
+app.jinja_env.globals["static_ver"] = _css_version()
+
+
 # ── Privacy: Add security/privacy headers to every response ──
 @app.after_request
 def add_privacy_headers(response):
