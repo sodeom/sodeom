@@ -293,9 +293,18 @@ def query_ai():
 
     if "messages" not in safe_params:
         safe_params["messages"] = [
-            {"role": "system", "content": ""},
+            {
+                "role": "system",
+                "content": (
+                    "You are a concise search assistant. Answer the user's query "
+                    "directly in 2-4 sentences. Be factual and brief."
+                ),
+            },
             {"role": "user", "content": query},
         ]
+
+    if "max_tokens" not in safe_params:
+        safe_params["max_tokens"] = 512
 
     # Validate messages structure
     if not isinstance(safe_params.get("messages"), list):

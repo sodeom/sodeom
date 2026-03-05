@@ -6,11 +6,17 @@ spell corrections, suggestions, infoboxes (wiki panels), and instant answers.
 Falls back across multiple public SearXNG instances if one is down.
 """
 
+import concurrent.futures
+import json
 import logging
 import os
 import random
+import re
+import threading
+import time
 
 import requests
+from requests.adapters import HTTPAdapter
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +51,49 @@ HEADERS = {
     "Accept": "application/json, text/html",
 }
 
-# Adult-content keyword blocklist (applied on top of SearXNG safe-search)
-_ADULT_KEYWORDS = ["porn", "xxx", "adult", "sex", "nude", "nsfw", "mature"]
+# Adult-content keyword blocklist — pre-compiled regex for fast matching
+_ADULT_RE = re.compile(
+    r"\b(?:porn|xxx|adult|sex|nude|nsfw|mature)\b",
+    re.IGNORECASE,
+)
+
+# ---------------------------------------------------------------------------
+# Persistent HTTP session with connection pooling
+# ---------------------------------------------------------------------------
+_session = requests.Session()
+_http_adapter = HTTPAdapter(pool_connections=10, pool_maxsize=20)
+_session.mount("http://", _http_adapter)
+_session.mount("https://", _http_adapter)
+
+# ---------------------------------------------------------------------------
+# In-memory TTL result cache (thread-safe, 60-second TTL, max 300 entries)
+# ---------------------------------------------------------------------------
+_CACHE_TTL = 60  # seconds
+_cache: dict = {}
+_cache_lock = threading.Lock()
+
+
+def _cache_get(key: str) -> "dict | None":
+    with _cache_lock:
+        entry = _cache.get(key)
+    if entry is None:
+        return None
+    data, ts = entry
+    if time.monotonic() - ts < _CACHE_TTL:
+        return data
+    with _cache_lock:
+        _cache.pop(key, None)
+    return None
+
+
+def _cache_set(key: str, data: dict) -> None:
+    with _cache_lock:
+        if len(_cache) > 300:
+            now = time.monotonic()
+            stale = [k for k, (_, ts) in _cache.items() if now - ts >= _CACHE_TTL]
+            for k in stale:
+                _cache.pop(k, None)
+        _cache[key] = (data, time.monotonic())
 
 
 def _get_instances():
@@ -68,34 +115,75 @@ def _get_instances():
 
 
 # ---------------------------------------------------------------------------
-# Low-level query helper
+# Low-level query helpers
 # ---------------------------------------------------------------------------
 
 
-def _query_searxng(params: dict, timeout: int = 12) -> dict | None:
-    """
-    Try each SearXNG instance in order until one returns a valid JSON response.
-    Returns the parsed JSON dict or None if all fail.
-    """
-    params.setdefault("format", "json")
-    params.setdefault("safesearch", "1")  # moderate safe-search
-
-    for base_url in _get_instances():
-        try:
-            url = f"{base_url}/search"
-            resp = requests.get(url, params=params, headers=HEADERS, timeout=timeout)
-            resp.raise_for_status()
-            data = resp.json()
-            if isinstance(data, dict):
-                return data
-        except Exception as e:
-            try:
-                logger.warning("[SearXNG] %s failed: %s", base_url, e)
-            except Exception:
-                pass
-            continue
-
+def _fetch_instance(base_url: str, params: dict, timeout: int) -> "dict | None":
+    """Fetch one SearXNG instance. Returns parsed dict or None on failure."""
+    try:
+        resp = _session.get(
+            f"{base_url}/search",
+            params=params,
+            headers=HEADERS,
+            timeout=timeout,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        if isinstance(data, dict):
+            return data
+    except Exception as e:
+        logger.debug("[SearXNG] %s failed: %s", base_url, e)
     return None
+
+
+def _query_searxng(params: dict, timeout: int = 8) -> "dict | None":
+    """
+    Query SearXNG with a two-stage strategy:
+    1. Try the local instance first (3 s timeout — it's localhost).
+    2. Race the top 3 public instances concurrently; return first success.
+    Results are cached for _CACHE_TTL seconds.
+    """
+    params = {**params, "format": "json"}
+    params.setdefault("safesearch", "1")
+
+    # --- Cache check ---
+    cache_key = json.dumps(params, sort_keys=True)
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return cached
+
+    # --- Stage 1: local instance (fast, 3 s) ---
+    data = _fetch_instance(_LOCAL_INSTANCE, params, timeout=3)
+    if data is not None:
+        _cache_set(cache_key, data)
+        return data
+
+    # --- Stage 2: race top-3 public instances concurrently ---
+    candidates = [i for i in _get_instances() if i != _LOCAL_INSTANCE][:3]
+    result = None
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=len(candidates))
+    futures = {
+        executor.submit(_fetch_instance, base, params, timeout): base
+        for base in candidates
+    }
+    try:
+        for future in concurrent.futures.as_completed(futures, timeout=timeout + 1):
+            try:
+                data = future.result()
+                if data is not None:
+                    result = data
+                    break
+            except Exception:
+                continue
+    except concurrent.futures.TimeoutError:
+        pass
+    finally:
+        executor.shutdown(wait=False)
+
+    if result is not None:
+        _cache_set(cache_key, result)
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -105,8 +193,7 @@ def _query_searxng(params: dict, timeout: int = 12) -> dict | None:
 
 def _is_safe(text: str) -> bool:
     """Return False if text contains adult keywords."""
-    lower = text.lower()
-    return not any(kw in lower for kw in _ADULT_KEYWORDS)
+    return not _ADULT_RE.search(text)
 
 
 def _filter_results(results: list[dict]) -> list[dict]:
