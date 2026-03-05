@@ -22,11 +22,13 @@ from flask import (
     send_file,
     send_from_directory,
 )
+from requests.adapters import HTTPAdapter
 
 logger = logging.getLogger(__name__)
 
 from results import (
     main,
+    search_first_image_url,
     search_images,
     search_news,
     search_videos,
@@ -189,6 +191,11 @@ client = OpenAI(base_url=GITHUB_ENDPOINT, api_key=GITHUB_TOKEN)
 # Maximum image download size: 10 MB
 MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
+# Shared session for image downloads (connection pooling)
+_img_session = requests.Session()
+_img_session.mount("http://", HTTPAdapter(pool_connections=5, pool_maxsize=10))
+_img_session.mount("https://", HTTPAdapter(pool_connections=5, pool_maxsize=10))
+
 
 def _is_safe_url(url: str) -> bool:
     """Block SSRF: reject private/internal IPs and non-http(s) schemes."""
@@ -210,6 +217,13 @@ def _is_safe_url(url: str) -> bool:
         return False
 
 
+_IMG_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.36",
+    "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+}
+
+
 def install_image(url: str, base_dir="placeholders") -> str | None:
     # SSRF protection: only allow safe external URLs
     if not _is_safe_url(url):
@@ -221,16 +235,13 @@ def install_image(url: str, base_dir="placeholders") -> str | None:
     filename = hashlib.sha256(url.encode()).hexdigest() + ".jpg"
     filepath = os.path.join(base_dir, filename)
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/122.0 Safari/537.36",
-        "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
-    }
+    # Already cached on disk — skip download entirely
+    if os.path.exists(filepath):
+        return filepath
 
     try:
-        response = requests.get(
-            url, stream=True, timeout=10, headers=headers, allow_redirects=False
+        response = _img_session.get(
+            url, stream=True, timeout=6, headers=_IMG_HEADERS, allow_redirects=False
         )
         response.raise_for_status()
         content_type = response.headers.get("Content-Type", "")
@@ -240,7 +251,7 @@ def install_image(url: str, base_dir="placeholders") -> str | None:
         # Enforce size limit to prevent disk exhaustion
         downloaded = 0
         with open(filepath, "wb") as f:
-            for chunk in response.iter_content(8192):
+            for chunk in response.iter_content(16384):
                 downloaded += len(chunk)
                 if downloaded > MAX_IMAGE_SIZE:
                     f.close()
@@ -249,11 +260,7 @@ def install_image(url: str, base_dir="placeholders") -> str | None:
                 f.write(chunk)
         return filepath
     except Exception as e:
-        try:
-            logger.warning("[install_image] Failed: %s", e)
-        except Exception:
-            pass
-        # Clean up partial file
+        logger.debug("[install_image] Failed: %s", e)
         if os.path.exists(filepath):
             os.remove(filepath)
         return None
@@ -441,8 +448,8 @@ def indexapi():
 
         results = data.get("results", [])
         total_results = data.get("number_of_results", len(results))
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        return jsonify({"error": "Search temporarily unavailable"}), 500
 
     response_data = {
         "results": results,
@@ -598,49 +605,24 @@ def news():
 def placeholder():
     q = request.args.get("q", "")
     if not q:
-        # No query → show docs page
         return render_template("placeholder.html")
 
     fallback = os.path.join("static", "not-found.png")
 
-    page = request.args.get("page", 1, type=int)
-    if page < 1:
-        page = 1
+    try:
+        candidates = search_first_image_url(q, count=3)
+    except Exception:
+        candidates = []
 
-    # Fetch a pool of candidate images via SearXNG
-    imgs = []
-    if q:
-        try:
-            data = search_images(q, page)
-            imgs = [
-                r.get("img_src", "")
-                for r in data.get("results", [])
-                if r.get("img_src")
-            ]
-        except Exception:
-            imgs = []
-
-    if not imgs:
-        return send_file(fallback, mimetype="image/png")
-
-    # Try up to 10 candidates until one works
-    for candidate in imgs[:10]:
-        img_path = install_image(candidate)
+    for url in candidates:
+        img_path = install_image(url)
         if img_path and os.path.exists(img_path):
-            try:
-                mime_type, _ = mimetypes.guess_type(img_path)
-                return send_file(
-                    os.path.abspath(img_path),
-                    mimetype=mime_type or "application/octet-stream",
-                )
-            except Exception as e:
-                try:
-                    logger.warning("[placeholder] Error serving %s: %s", img_path, e)
-                except Exception:
-                    pass
-                continue
+            mime_type, _ = mimetypes.guess_type(img_path)
+            return send_file(
+                os.path.abspath(img_path),
+                mimetype=mime_type or "application/octet-stream",
+            )
 
-    # If all failed → serve fallback
     return send_file(fallback, mimetype="image/png")
 
 
@@ -648,31 +630,16 @@ def placeholder():
 def placeholder_url():
     q = request.args.get("q", "")
     if not q:
-        # No query → show docs page
         return render_template("placeholder.html")
 
-    fallback = os.path.join("static", "not-found.png")
+    try:
+        urls = search_first_image_url(q, count=1)
+        if urls:
+            return urls[0]
+    except Exception:
+        pass
 
-    page = request.args.get("page", 1, type=int)
-    if page < 1:
-        page = 1
-
-    # Fetch a pool of candidate images via SearXNG
-    if q:
-        try:
-            data = search_images(q, page)
-            imgs = [
-                r.get("img_src", "")
-                for r in data.get("results", [])
-                if r.get("img_src")
-            ]
-            if imgs and imgs[0]:
-                return imgs[0]
-        except Exception:
-            pass
-
-    # If all failed → serve fallback
-    return fallback
+    return os.path.join("static", "not-found.png")
 
 
 @app.route("/aaaa")

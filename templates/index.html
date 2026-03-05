@@ -154,8 +154,11 @@ results page #}
     <span class="ai-answer-badge">Sodi AI</span>
   </div>
   <div class="ai-answer-body">
-    <div id="ai-answer-text" class="ai-answer-text">
-      <span class="ai-answer-loading">Generating answer…</span>
+    <div class="ai-answer-response">
+      <div class="ai-answer-response-indicator"></div>
+      <div id="ai-answer-text" class="ai-answer-text">
+        <span class="ai-answer-loading">Generating answer…</span>
+      </div>
     </div>
   </div>
   <div class="ai-answer-footer">
@@ -303,7 +306,7 @@ query %}
 {% endif %}
 
 <script>
-  // AI Answer fetch + typewriter
+  // AI Answer fetch + markdown render
   (function () {
     var query = {{ query | tojson }};
     var card = document.getElementById('ai-answer-card');
@@ -312,27 +315,63 @@ query %}
 
     card.style.display = 'block';
 
-    function typewrite(text) {
-      textEl.textContent = '';
-      var cursor = document.createElement('span');
-      cursor.className = 'ai-typing-cursor';
-      textEl.appendChild(cursor);
-      var i = 0;
-      var speed = Math.max(8, Math.min(22, Math.floor(3000 / text.length)));
-      var interval = setInterval(function () {
-        cursor.before(document.createTextNode(text[i++]));
-        if (i >= text.length) {
-          clearInterval(interval);
-          cursor.remove();
+    function esc(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function inline(s) {
+      s = esc(s);
+      s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+      s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      s = s.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+      s = s.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+      s = s.replace(/_([^_\n]+)_/g, '<em>$1</em>');
+      return s;
+    }
+    function renderMarkdown(raw) {
+      var html = '';
+      // normalise line endings
+      var text = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      // split into blocks by blank lines
+      var blocks = text.split(/\n{2,}/);
+      for (var b = 0; b < blocks.length; b++) {
+        var block = blocks[b].trim();
+        if (!block) continue;
+        // fenced code block
+        if (block.slice(0,3) === '```') {
+          var code = block.replace(/^```[^\n]*\n?/, '').replace(/\n?```$/, '');
+          html += '<pre><code>' + esc(code) + '</code></pre>';
+          continue;
         }
-      }, speed);
+        // headings
+        if (/^### /.test(block)) { html += '<h3>' + inline(block.slice(4)) + '</h3>'; continue; }
+        if (/^## /.test(block))  { html += '<h2>' + inline(block.slice(3)) + '</h2>'; continue; }
+        if (/^# /.test(block))   { html += '<h1>' + inline(block.slice(2)) + '</h1>'; continue; }
+        // list block
+        var lines = block.split('\n');
+        if (/^[\*\-] /.test(lines[0]) || /^\d+\.\s/.test(lines[0])) {
+          var isOl = /^\d+\.\s/.test(lines[0]);
+          var tag = isOl ? 'ol' : 'ul';
+          html += '<' + tag + '>';
+          for (var l = 0; l < lines.length; l++) {
+            var li = lines[l].replace(/^[\*\-] /, '').replace(/^\d+\.\s/, '');
+            html += '<li>' + inline(li) + '</li>';
+          }
+          html += '</' + tag + '>';
+          continue;
+        }
+        // paragraph
+        var paraLines = lines.map(function(l){ return inline(l); }).join('<br>');
+        html += '<p>' + paraLines + '</p>';
+      }
+      return html;
     }
 
     fetch('/ai?query=' + encodeURIComponent(query))
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (data.answer) {
-          typewrite(data.answer);
+          textEl.innerHTML = renderMarkdown(data.answer);
+          textEl.classList.add('ai-rendered');
         } else {
           card.style.display = 'none';
         }

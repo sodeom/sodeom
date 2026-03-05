@@ -137,12 +137,13 @@ def _fetch_instance(base_url: str, params: dict, timeout: int) -> "dict | None":
     return None
 
 
-def _query_searxng(params: dict, timeout: int = 8) -> "dict | None":
+def _query_searxng(params: dict, timeout: int = 12) -> "dict | None":
     """
     Query SearXNG with a two-stage strategy:
-    1. Try the local instance first (3 s timeout — it's localhost).
-    2. Race the top 3 public instances concurrently; return first success.
-    Results are cached for _CACHE_TTL seconds.
+    1. Try the local instance first — timeout matches the search timeout so
+       slow image/video engines have time to finish.
+    2. Race all public instances concurrently; return first success.
+    Only responses with actual results are cached.
     """
     params = {**params, "format": "json"}
     params.setdefault("safesearch", "1")
@@ -153,14 +154,16 @@ def _query_searxng(params: dict, timeout: int = 8) -> "dict | None":
     if cached is not None:
         return cached
 
-    # --- Stage 1: local instance (fast, 3 s) ---
-    data = _fetch_instance(_LOCAL_INSTANCE, params, timeout=3)
-    if data is not None:
+    # --- Stage 1: local instance ---
+    data = _fetch_instance(_LOCAL_INSTANCE, params, timeout=timeout)
+    if data is not None and data.get("results"):
         _cache_set(cache_key, data)
         return data
+    # Keep a non-empty data fallback in case stage 2 also returns nothing
+    best = data if (data is not None and not data.get("results") is None) else None
 
-    # --- Stage 2: race top-3 public instances concurrently ---
-    candidates = [i for i in _get_instances() if i != _LOCAL_INSTANCE][:3]
+    # --- Stage 2: race all public instances concurrently ---
+    candidates = [i for i in _get_instances() if i != _LOCAL_INSTANCE]
     result = None
     executor = concurrent.futures.ThreadPoolExecutor(max_workers=len(candidates))
     futures = {
@@ -170,10 +173,13 @@ def _query_searxng(params: dict, timeout: int = 8) -> "dict | None":
     try:
         for future in concurrent.futures.as_completed(futures, timeout=timeout + 1):
             try:
-                data = future.result()
-                if data is not None:
-                    result = data
+                d = future.result()
+                # Prefer a response that actually has results
+                if d is not None and d.get("results"):
+                    result = d
                     break
+                elif d is not None and result is None:
+                    result = d  # keep as fallback
             except Exception:
                 continue
     except concurrent.futures.TimeoutError:
@@ -181,9 +187,11 @@ def _query_searxng(params: dict, timeout: int = 8) -> "dict | None":
     finally:
         executor.shutdown(wait=False)
 
-    if result is not None:
-        _cache_set(cache_key, result)
-    return result
+    # Use stage-2 result, or fall back to stage-1 data (may be empty)
+    final = result or best
+    if final is not None and final.get("results"):
+        _cache_set(cache_key, final)
+    return final
 
 
 # ---------------------------------------------------------------------------
@@ -212,18 +220,6 @@ def _filter_results(results: list[dict]) -> list[dict]:
 
 
 def search_web(query: str, page: int = 1, language: str = "en") -> dict:
-    """
-    Perform a general web search via SearXNG.
-
-    Returns a dict with keys:
-        results      – list of {title, link, description, engine, ...}
-        suggestions  – list of suggested queries
-        corrections  – list of spelling corrections
-        infoboxes    – list of infobox dicts (wiki panels, QA, etc.)
-        answers      – list of instant-answer strings
-        query        – the original query
-        page         – current page number
-    """
     params = {
         "q": query,
         "categories": "general",
@@ -231,8 +227,7 @@ def search_web(query: str, page: int = 1, language: str = "en") -> dict:
         "language": language,
         "engines": "google,duckduckgo,bing,brave,mojeek,qwant",
     }
-
-    data = _query_searxng(params)
+    data = _query_searxng(params, timeout=12)
 
     if data is None:
         return _empty_response(query, page)
@@ -276,20 +271,13 @@ def search_web(query: str, page: int = 1, language: str = "en") -> dict:
 
 
 def search_images(query: str, page: int = 1, language: str = "en") -> dict:
-    """
-    Image search via SearXNG.
-
-    Each result contains: title, url (page), img_src (full image),
-    thumbnail_src, source/engine, resolution, etc.
-    """
     params = {
         "q": query,
         "categories": "images",
         "pageno": page,
         "language": language,
     }
-
-    data = _query_searxng(params)
+    data = _query_searxng(params, timeout=12)
 
     if data is None:
         return _empty_response(query, page)
@@ -324,24 +312,46 @@ def search_images(query: str, page: int = 1, language: str = "en") -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Public API – Single image URL (for /placeholder)
+# ---------------------------------------------------------------------------
+
+
+def search_first_image_url(query: str, count: int = 3) -> list[str]:
+    """
+    Fetch the first `count` image URLs for a query.
+    Returns a list of img_src strings.
+    """
+    params = {
+        "q": query,
+        "categories": "images",
+        "pageno": 1,
+    }
+    data = _query_searxng(params, timeout=12)
+    if data is None:
+        return []
+    urls = []
+    for r in data.get("results", []):
+        img = r.get("img_src", "") or r.get("url", "")
+        if img and _is_safe(f"{r.get('title', '')} {img}"):
+            urls.append(img)
+            if len(urls) >= count:
+                break
+    return urls
+
+
+# ---------------------------------------------------------------------------
 # Public API – Video search
 # ---------------------------------------------------------------------------
 
 
 def search_videos(query: str, page: int = 1, language: str = "en") -> dict:
-    """
-    Video search via SearXNG.
-
-    Each result contains: title, url, thumbnail, length, author/source, etc.
-    """
     params = {
         "q": query,
         "categories": "videos",
         "pageno": page,
         "language": language,
     }
-
-    data = _query_searxng(params)
+    data = _query_searxng(params, timeout=12)
 
     if data is None:
         return _empty_response(query, page)
@@ -393,8 +403,7 @@ def search_news(query: str, page: int = 1, language: str = "en") -> dict:
         "pageno": page,
         "language": language,
     }
-
-    data = _query_searxng(params)
+    data = _query_searxng(params, timeout=12)
 
     if data is None:
         return _empty_response(query, page)
