@@ -6,11 +6,9 @@ spell corrections, suggestions, infoboxes (wiki panels), and instant answers.
 Falls back across multiple public SearXNG instances if one is down.
 """
 
-import concurrent.futures
 import json
 import logging
 import os
-import random
 import re
 import threading
 import time
@@ -28,19 +26,6 @@ _LOCAL_INSTANCE = "http://localhost:8888"
 
 # Prefer a self-hosted instance via env var; fall back to local, then public.
 _PRIMARY_INSTANCE = os.getenv("SEARXNG_URL", "").rstrip("/")
-
-_PUBLIC_INSTANCES = [
-    "https://search.bus-hit.me",
-    "https://searx.be",
-    "https://search.ononoki.org",
-    "https://searx.tiekoetter.com",
-    "https://search.sapti.me",
-    "https://searx.oxf.app",
-    "https://paulgo.io",
-    "https://opnxng.com",
-    "https://priv.au",
-    "https://searx.work",
-]
 
 HEADERS = {
     "User-Agent": (
@@ -97,21 +82,10 @@ def _cache_set(key: str, data: dict) -> None:
 
 
 def _get_instances():
-    """Return an ordered list of SearXNG base URLs to try.
-
-
-    1. SEARXNG_URL env var (self-hosted override)
-    2. Local instance at localhost:8888 (started by app.py)
-    3. Public instances (shuffled for load spreading)
+    """Return the SearXNG base URL to use.
+    Prefers SEARXNG_URL env var, falls back to local instance.
     """
-    instances = list(_PUBLIC_INSTANCES)
-    random.shuffle(instances)  # spread load
-    # Always try local instance first (fastest, most reliable)
-    instances.insert(0, _LOCAL_INSTANCE)
-    # Env-var override takes top priority
-    if _PRIMARY_INSTANCE:
-        instances.insert(0, _PRIMARY_INSTANCE)
-    return instances
+    return [_PRIMARY_INSTANCE or _LOCAL_INSTANCE]
 
 
 # ---------------------------------------------------------------------------
@@ -137,12 +111,17 @@ def _fetch_instance(base_url: str, params: dict, timeout: int) -> "dict | None":
     return None
 
 
+# How long to wait before retrying when SearXNG returns no results
+_RETRY_DELAY = 1  # seconds
+_MAX_RETRIES = 2  # one retry after a short pause
+
+
 def _query_searxng(params: dict, timeout: int = 12) -> "dict | None":
     """
-    Query SearXNG with a two-stage strategy:
-    1. Try the local instance first — timeout matches the search timeout so
-       slow image/video engines have time to finish.
-    2. Race all public instances concurrently; return first success.
+    Query the local SearXNG instance with automatic retry.
+    Retries up to _MAX_RETRIES times if the instance is still starting up
+    or returned an empty result set. No public instance fallback — the
+    production machine has no outbound access to external instances.
     Only responses with actual results are cached.
     """
     params = {**params, "format": "json"}
@@ -154,44 +133,24 @@ def _query_searxng(params: dict, timeout: int = 12) -> "dict | None":
     if cached is not None:
         return cached
 
-    # --- Stage 1: local instance ---
-    data = _fetch_instance(_LOCAL_INSTANCE, params, timeout=timeout)
-    if data is not None and data.get("results"):
-        _cache_set(cache_key, data)
-        return data
-    # Keep a non-empty data fallback in case stage 2 also returns nothing
-    best = data if (data is not None and not data.get("results") is None) else None
+    instance = _PRIMARY_INSTANCE or _LOCAL_INSTANCE
 
-    # --- Stage 2: race all public instances concurrently ---
-    candidates = [i for i in _get_instances() if i != _LOCAL_INSTANCE]
-    result = None
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=len(candidates))
-    futures = {
-        executor.submit(_fetch_instance, base, params, timeout): base
-        for base in candidates
-    }
-    try:
-        for future in concurrent.futures.as_completed(futures, timeout=timeout + 1):
-            try:
-                d = future.result()
-                # Prefer a response that actually has results
-                if d is not None and d.get("results"):
-                    result = d
-                    break
-                elif d is not None and result is None:
-                    result = d  # keep as fallback
-            except Exception:
-                continue
-    except concurrent.futures.TimeoutError:
-        pass
-    finally:
-        executor.shutdown(wait=False)
+    last: "dict | None" = None
+    for attempt in range(_MAX_RETRIES):
+        data = _fetch_instance(instance, params, timeout=timeout)
+        if data is not None and data.get("results"):
+            _cache_set(cache_key, data)
+            return data
+        if data is not None:
+            last = data  # keep as fallback (has structure, just empty results)
+        if attempt < _MAX_RETRIES - 1:
+            # Small pause — SearXNG may still be initialising or the engine
+            # hit a transient upstream timeout; a short wait often resolves it
+            time.sleep(_RETRY_DELAY)
 
-    # Use stage-2 result, or fall back to stage-1 data (may be empty)
-    final = result or best
-    if final is not None and final.get("results"):
-        _cache_set(cache_key, final)
-    return final
+    # Return empty-but-structured response rather than None so callers can
+    # distinguish "SearXNG reachable but no results" from "SearXNG down".
+    return last
 
 
 # ---------------------------------------------------------------------------
@@ -225,7 +184,8 @@ def search_web(query: str, page: int = 1, language: str = "en") -> dict:
         "categories": "general",
         "pageno": page,
         "language": language,
-        "engines": "google,duckduckgo,bing,brave,mojeek,qwant",
+        # No engine restriction — let SearXNG use whatever is enabled in
+        # settings_local.yml so the query works on any deployment
     }
     data = _query_searxng(params, timeout=12)
 
