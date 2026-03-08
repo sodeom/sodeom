@@ -122,19 +122,25 @@ _SEARXNG_SETTINGS = os.path.join(
 _SEARXNG_PYTHON = os.path.join(os.path.dirname(__file__), ".venv", "bin", "python")
 
 
+def _port_open(host: str, port: int, timeout: float = 1.0) -> bool:
+    """Return True if something is listening on host:port."""
+    import socket
+
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
 def _start_searxng():
     """Start SearXNG as a background subprocess if not already running."""
     global _SEARXNG_PROC
 
     # Check if already running on port 8888
-    try:
-        import urllib.request
-
-        urllib.request.urlopen("http://localhost:8888/", timeout=2)
+    if _port_open("127.0.0.1", 8888):
         print("[SearXNG] Already running on port 8888")
         return
-    except Exception:
-        pass  # Not running yet, start it
 
     if not os.path.exists(_SEARXNG_PYTHON):
         print(f"[SearXNG] Python not found at {_SEARXNG_PYTHON} — skipping local start")
@@ -159,22 +165,14 @@ def _start_searxng():
         )
         print(f"[SearXNG] Started with PID {_SEARXNG_PROC.pid}")
 
-        # Wait up to 60 seconds for SearXNG to become ready (engines need time to initialize)
-        startup_timeout = 60
-        for i in range(startup_timeout):
+        # Wait up to 60 seconds for SearXNG to start listening on port 8888.
+        # Uses a raw socket check so botdetection headers don't interfere.
+        for i in range(60):
             time.sleep(1)
-            try:
-                import urllib.request
-
-                urllib.request.urlopen("http://localhost:8888/", timeout=2)
+            if _port_open("127.0.0.1", 8888):
                 print(f"[SearXNG] Ready after {i + 1}s")
                 return
-            except Exception:
-                pass
-        # If local SearXNG isn't ready, the app will automatically use fallback public instances
-        print(
-            "[SearXNG] Local instance not ready - will use fallback public SearXNG instances for search"
-        )
+        print("[SearXNG] Warning: instance did not open port 8888 within 60s")
     except Exception as e:
         print(f"[SearXNG] Failed to start: {e}")
 
