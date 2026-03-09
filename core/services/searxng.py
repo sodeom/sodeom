@@ -68,6 +68,7 @@ def start_searxng() -> None:
 
 def _start_watchdog() -> None:
     """Background thread that restarts SearXNG if it dies."""
+
     def _watch():
         while True:
             time.sleep(15)
