@@ -196,7 +196,7 @@ infoboxes %}
       class="infobox-img"
     />{% endif %}
     <div>
-      <h3 class="infobox-title">{{ box.id or box.title or '' }}</h3>
+      <h3 class="infobox-title">{{ box.infobox or box.title or box.id or '' }}</h3>
       {% if box.infobox %}
       <p class="infobox-type">{{ box.infobox }}</p>
       {% endif %}

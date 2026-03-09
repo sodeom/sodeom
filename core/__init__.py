@@ -2,13 +2,16 @@ import os
 import secrets
 
 import dotenv
+
+# Load .env BEFORE importing local modules so env vars like GITHUB_TOKEN
+# are available when ai_client.py initialises the OpenAI client at import time.
+dotenv.load_dotenv()
+
 from flask import Flask
 
 from .middleware import _css_version, add_privacy_headers
 from .routes import register_blueprints
 from .services.searxng import start_searxng
-
-dotenv.load_dotenv()
 
 # Absolute path to the project root (one level above this package)
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
