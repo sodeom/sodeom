@@ -1,8 +1,9 @@
-# ──────────────────────────────────────────────────────────────────────────────
-# DEPRECATED — this monolithic file has been replaced by the app/ package.
-#
-# Python's import system prefers the app/ directory package over this file,
-# so `from app import create_app` correctly loads app/__init__.py.
-#
-# To run the application:   python main.py
-# ──────────────────────────────────────────────────────────────────────────────
+from core import create_app
+
+app = create_app()
+
+if __name__ == "__main__":
+    import os
+
+    debug_mode = os.getenv("FLASK_DEBUG", "false").lower() in ("true", "1", "yes")
+    app.run(host="0.0.0.0", port=9999, debug=debug_mode, threaded=True)

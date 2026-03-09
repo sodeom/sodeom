@@ -21,8 +21,8 @@ from search.results import (
     search_wiki,
 )
 
-from app.services.image import install_image
-from app.utils.encoding import binary_to_utf8_string, utf8_string_to_binary
+from core.services.image import install_image
+from core.utils.encoding import binary_to_utf8_string, utf8_string_to_binary
 
 search_bp = Blueprint("search", __name__)
 

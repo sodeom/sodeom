@@ -6,7 +6,7 @@ import uuid
 
 from flask import Blueprint, Response, jsonify, request, stream_with_context
 
-from app.services.ai_client import (
+from core.services.ai_client import (
     _ALLOWED_AI_PARAMS,
     _ALLOWED_COMPLETIONS_PARAMS,
     _AVAILABLE_MODELS,
