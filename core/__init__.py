@@ -32,8 +32,9 @@ def create_app() -> Flask:
     # Register all route blueprints
     register_blueprints(app)
 
-    # Launch SearXNG subprocess (skip in Flask reloader child process)
-    if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
-        start_searxng()
+    # Launch SearXNG subprocess.
+    # _port_open() inside start_searxng() guards against double-starts,
+    # so it's safe to call from both the reloader parent and child.
+    start_searxng()
 
     return app
