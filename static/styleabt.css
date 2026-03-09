@@ -5,7 +5,12 @@
 }
 
 body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
     sans-serif;
   line-height: 1.7;
   color: #1a1a1a;
@@ -448,8 +453,36 @@ footer {
 }
 
 @media (max-width: 768px) {
+  /* Nav: collapse links into a scrollable row */
   .nav-links {
+    gap: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+
+  .nav-links::-webkit-scrollbar {
     display: none;
+  }
+
+  .nav-links a {
+    white-space: nowrap;
+    font-size: 0.88rem;
+  }
+
+  .header-content {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .logo {
+    font-size: 22px;
+  }
+
+  .hero-title {
+    font-size: 2.2rem;
   }
 
   .content-grid {
@@ -460,16 +493,34 @@ footer {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .hero-title {
-    font-size: 3rem;
-  }
-
   .key-facts {
     grid-template-columns: 1fr;
   }
 
   .services-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-links {
+    display: none;
+  }
+
+  .logo {
+    font-size: 20px;
+  }
+
+  .hero-title {
+    font-size: 1.7rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .container {
+    padding: 0 12px;
   }
 }
 

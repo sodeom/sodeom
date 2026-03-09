@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  font-family: 'Open Sans', sans-serif;
+  font-family: "Open Sans", sans-serif;
   color: #f0f0f0;
   background-color: #121212;
 }
@@ -26,7 +26,7 @@ header {
 
 /* Company name style */
 .company-name {
-  font-family: 'Pacifico', cursive;
+  font-family: "Pacifico", cursive;
   font-size: 2.5em;
   margin: 0;
   color: #f0f0f0;
@@ -45,14 +45,16 @@ nav ul li {
 nav ul li a {
   text-decoration: none;
   color: #f0f0f0;
-  font-family: 'Times New Roman', Times, serif;
+  font-family: "Times New Roman", Times, serif;
   font-size: 1.2em;
-  transition: color 0.3s ease, text-shadow 0.3s ease;
+  transition:
+    color 0.3s ease,
+    text-shadow 0.3s ease;
 }
 
 /* Hover styles for navigation links */
 nav ul li a:hover {
-  color: #007BFF;
+  color: #007bff;
   text-shadow: 0 0 5px rgba(0, 123, 255, 0.8);
 }
 
@@ -69,7 +71,7 @@ nav ul li a:hover {
 }
 
 .btn {
-  background: #007BFF;
+  background: #007bff;
   color: #fff;
   padding: 12px 25px;
   text-decoration: none;
@@ -102,64 +104,68 @@ footer .social li a {
 
 /* Grid Layout for Services Content */
 .services-content {
-padding: 60px 0;
-background-color: #121212;
+  padding: 60px 0;
+  background-color: #121212;
 }
 
 .services-content .grid-container {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
 }
 
 /* Service Cards remain mostly the same */
 .service-card {
-background-color: #1e1e1e;
-border-radius: 8px;
-padding: 20px;
-box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .service-card h2 {
-margin-top: 0;
-font-size: 1.8em;
-color: #007BFF;
+  margin-top: 0;
+  font-size: 1.8em;
+  color: #007bff;
 }
 
 .service-card p {
-font-size: 1em;
-line-height: 1.6;
+  font-size: 1em;
+  line-height: 1.6;
 }
 
 /* Hover effects for service cards */
 .service-card:hover {
-transform: translateY(-5px);
-box-shadow: 0 6px 10px rgba(0, 0, 0, 0.6);
+  transform: translateY(-5px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.6);
 }
 
 /* Responsive adjustments for smaller screens are handled by auto-fit */
 
 /* Button Styling for Service Cards */
 .service-btn {
-display: inline-block;
-background: #007BFF;
-color: #fff;
-padding: 10px 20px;
-margin-top: 15px;
-text-decoration: none;
-border-radius: 5px;
-transition: background 0.3s ease, transform 0.3s ease;
+  display: inline-block;
+  background: #007bff;
+  color: #fff;
+  padding: 10px 20px;
+  margin-top: 15px;
+  text-decoration: none;
+  border-radius: 5px;
+  transition:
+    background 0.3s ease,
+    transform 0.3s ease;
 }
 
 .service-btn:hover {
-background: #0056b3;
-transform: translateY(-3px);
+  background: #0056b3;
+  transform: translateY(-3px);
 }
 
 /* General Styles */
 :root {
-  --primary-color: #4CAF50;
+  --primary-color: #4caf50;
   --secondary-color: #45a049;
   --light-gray: #dcdcdc;
   --dark-gray: #333;
@@ -167,10 +173,11 @@ transform: translateY(-3px);
   --transition-speed: 0.3s;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   line-height: 1.6;
   color: #333;
   height: auto;
@@ -343,186 +350,97 @@ footer {
 /* Media Queries for Mobile */
 @media (max-width: 768px) {
   .container {
-      width: 90%; /* Adjust container width for small screens */
+    width: 92%;
+    padding: 0 12px;
   }
 
   header h1 {
-      font-size: 1.8em; /* Smaller font size for mobile */
+    font-size: 1.6em;
+  }
+
+  .company-name {
+    font-size: 1.8em;
   }
 
   header nav ul {
-      margin: 5px 0 0; /* Reduce top margin */
-      gap: 8px; /* Adjust spacing between nav items */
+    margin: 5px 0 0;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  header nav ul li {
+    margin-left: 10px;
   }
 
   header nav ul li a {
-      font-size: 0.8em; /* Smaller font for nav links */
-  }
-
-  h2 {
-      font-size: 1.5em; /* Reduce section heading size */
-  }
-
-  form button {
-      font-size: 1em; /* Adjust button font size for mobile */
-  }
-}
-
-body {
-    margin: 0;
-    font-family: 'Open Sans', sans-serif;
-    color: #f0f0f0;
-    background-color: #121212;
-  }
-
-  .container {
-    width: 90%;
-    margin: 0 auto;
-    max-width: 1200px;
+    font-size: 0.8em;
   }
 
   .header-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
-  /* Updated header with transparent background to blend into main page */
-  header {
-    background: transparent;
-    padding: 20px 0;
-    /* Removed box-shadow to maintain a seamless look */
+  h2 {
+    font-size: 1.4em;
   }
 
-  /* Company name style */
-  .company-name {
-    font-family: 'Pacifico', cursive;
-    font-size: 2.5em;
-    margin: 0;
-    color: #f0f0f0;
-  }
-
-  nav ul {
-    list-style: none;
-    margin: 0;
-  }
-
-  nav ul li {
-    display: inline;
-    margin-left: 20px;
-  }
-
-  nav ul li a {
-    text-decoration: none;
-    color: #f0f0f0;
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 1.2em;
-    transition: color 0.3s ease, text-shadow 0.3s ease;
-  }
-
-  /* Hover styles for navigation links */
-  nav ul li a:hover {
-    color: #007BFF;
-    text-shadow: 0 0 5px rgba(0, 123, 255, 0.8);
+  form button {
+    font-size: 1em;
   }
 
   .hero {
-    background: linear-gradient(135deg, #1e1e1e, #121212);
-    color: #f0f0f0;
-    text-align: center;
-    padding: 150px 0;
+    padding: 80px 0;
   }
 
   .hero h1 {
-    font-size: 3em;
-    margin: 0;
+    font-size: 2em;
   }
 
-  .btn {
-    background: #007BFF;
-    color: #fff;
-    padding: 12px 25px;
-    text-decoration: none;
-    border-radius: 5px;
-    display: inline-block;
-    margin-top: 20px;
+  .services-content .grid-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    width: 96%;
+    padding: 0 8px;
   }
 
-  footer {
-    background: #1e1e1e;
-    padding: 20px 0;
-    text-align: center;
-    font-size: 0.9em;
+  header h1 {
+    font-size: 1.3em;
   }
 
-  footer .social {
-    list-style: none;
-    padding: 0;
+  .company-name {
+    font-size: 1.5em;
   }
 
-  footer .social li {
-    display: inline;
-    margin: 0 10px;
+  header nav ul li {
+    display: block;
+    margin: 4px 0;
   }
 
-  footer .social li a {
-    color: #f0f0f0;
-    text-decoration: none;
+  .header-container {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  /* Grid Layout for Services Content */
-.services-content {
-  padding: 60px 0;
-  background-color: #121212;
-}
+  .hero {
+    padding: 60px 0;
+  }
 
-.services-content .grid-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
+  .hero h1 {
+    font-size: 1.6em;
+  }
 
-/* Service Cards remain mostly the same */
-.service-card {
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
+  form input,
+  form textarea {
+    font-size: 0.95em;
+  }
 
-.service-card h2 {
-  margin-top: 0;
-  font-size: 1.8em;
-  color: #007BFF;
-}
-
-.service-card p {
-  font-size: 1em;
-  line-height: 1.6;
-}
-
-/* Hover effects for service cards */
-.service-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.6);
-}
-
-/* Responsive adjustments for smaller screens are handled by auto-fit */
-
-/* Button Styling for Service Cards */
-.service-btn {
-  display: inline-block;
-  background: #007BFF;
-  color: #fff;
-  padding: 10px 20px;
-  margin-top: 15px;
-  text-decoration: none;
-  border-radius: 5px;
-  transition: background 0.3s ease, transform 0.3s ease;
-}
-
-.service-btn:hover {
-  background: #0056b3;
-  transform: translateY(-3px);
+  form button {
+    font-size: 0.95em;
+    padding: 8px;
+  }
 }

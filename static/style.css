@@ -71,6 +71,7 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%; /* prevent iOS font scaling */
 }
 
 body {
@@ -83,6 +84,7 @@ body {
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent; /* remove tap flash on mobile */
 }
 
 /* Background Pattern */
@@ -327,6 +329,7 @@ header nav a.active-tab {
   cursor: pointer;
   transition: all var(--transition-fast);
   white-space: nowrap;
+  min-height: 44px; /* WCAG / mobile touch target */
 }
 
 .btn-primary:hover {
@@ -1097,34 +1100,74 @@ pre code {
    RESPONSIVE DESIGN
    ======================================== */
 
+/* Tablet (≤ 768px) */
 @media (max-width: 768px) {
   html {
     font-size: 15px;
   }
 
+  /* ── Header ── */
   header h1 {
     font-size: 1.5rem;
     flex-wrap: wrap;
     justify-content: center;
   }
 
+  header nav {
+    gap: var(--space-xs) var(--space-md);
+  }
+
+  /* Compact header: logo + search bar stacked */
+  .compact-header-row {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+
+  .compact-logo {
+    font-size: 1rem;
+  }
+
+  /* ── Search form ── */
   .search-form {
     flex-direction: column;
+    max-width: 100%;
   }
 
   .search-form input[type="text"] {
     font-size: 1rem;
+    border-radius: var(--radius-md);
   }
 
   .btn-primary {
     width: 100%;
+    border-radius: var(--radius-md);
   }
 
+  /* ── Search tab nav ── */
   .search-nav {
     width: 100%;
-    justify-content: center;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    border-radius: var(--radius-md);
+    padding: var(--space-xs) var(--space-sm);
+    gap: var(--space-xs);
+    scrollbar-width: none;
   }
 
+  .search-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .search-nav a {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  /* ── Infobox ── */
   .infobox-header {
     flex-direction: column;
     align-items: center;
@@ -1136,32 +1179,154 @@ pre code {
     height: 80px;
   }
 
-  .footer-grid {
-    grid-template-columns: 1fr;
-    text-align: center;
+  .infobox-table th {
+    width: 40%;
+    font-size: 0.85rem;
   }
 
-  .image-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  /* ── Results ── */
+  .results-list li {
+    padding: var(--space-md);
+  }
+
+  .results-list h5 {
+    font-size: 1rem;
+  }
+
+  /* ── AI Answer card ── */
+  .ai-answer-header {
+    padding: 10px 14px;
+  }
+
+  .ai-answer-body {
+    padding: 12px 14px 14px;
+  }
+
+  .ai-answer-response {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .ai-answer-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 8px 14px;
+  }
+
+  /* ── Video / News cards ── */
+  .video-link {
+    flex-direction: column;
+  }
+
+  .video-thumb-wrap {
+    width: 100%;
+    height: 180px;
+  }
+
+  .video-title {
+    white-space: normal;
+  }
+
+  .news-link {
+    flex-direction: column;
+  }
+
+  .news-thumb-wrap {
+    width: 100%;
+    height: 160px;
+  }
+
+  /* ── Grids → single column ── */
+  .grid-container {
+    grid-template-columns: 1fr;
   }
 
   .feature-grid {
     grid-template-columns: 1fr;
   }
 
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pricing-container {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+
+  /* ── Image grid ── */
+  .image-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--space-sm);
+  }
+
+  /* ── Footer ── */
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-lg);
+    padding: var(--space-md);
+  }
+
+  /* ── Pro offer ── */
   .pro-offer ul {
     flex-direction: column;
     align-items: center;
   }
-}
 
-@media (max-width: 480px) {
-  .container {
-    width: 94%;
+  /* ── Action buttons ── */
+  .action-buttons {
+    flex-direction: column;
   }
 
+  .retry-btn,
+  .continue-btn,
+  .home-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* ── Hash card ── */
+  .hash-card {
+    padding: var(--space-lg);
+  }
+
+  /* ── Services hero ── */
+  .services-hero .page-title {
+    font-size: 1.8rem;
+  }
+
+  /* ── Content card ── */
+  .content-card {
+    padding: var(--space-lg);
+  }
+
+  /* ── Answer box ── */
+  .answer-box {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+
+  /* ── Contact form ── */
+  .contact-form {
+    padding: var(--space-lg);
+  }
+}
+
+/* Mobile (≤ 480px) */
+@media (max-width: 480px) {
+  html {
+    font-size: 14px;
+  }
+
+  .container {
+    width: 96%;
+    padding: 0 var(--space-sm);
+  }
+
+  /* ── Header ── */
   header {
-    padding: var(--space-md) 0;
+    padding: var(--space-sm) 0;
   }
 
   header nav {
@@ -1169,20 +1334,131 @@ pre code {
   }
 
   header nav a {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     padding: var(--space-xs);
   }
 
-  .content-card {
-    padding: var(--space-lg);
+  header h1 {
+    font-size: 1.25rem;
   }
 
+  /* ── Search form ── */
+  .search-form input[type="text"] {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.95rem;
+  }
+
+  /* ── Results ── */
   .results-list li {
-    padding: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
   }
 
   .results-list h5 {
-    font-size: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
+
+  .result-url {
+    font-size: 0.78rem;
+  }
+
+  .description-small {
+    font-size: 0.88rem;
+  }
+
+  /* ── Image grid: 2 fixed columns ── */
+  .image-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* ── Footer: single column on small screens ── */
+  .footer-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  /* ── Cards tighter padding ── */
+  .content-card {
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+  }
+
+  .feature-card {
+    padding: var(--space-lg);
+  }
+
+  .service-card {
+    padding: var(--space-lg);
+  }
+
+  .pricing-card {
+    padding: var(--space-lg);
+  }
+
+  /* ── AI answer ── */
+  .ai-answer-response {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ai-answer-response-indicator {
+    width: 100%;
+    height: 3px;
+    min-height: auto;
+    align-self: auto;
+  }
+
+  /* ── Video ── */
+  .video-thumb-wrap {
+    height: 150px;
+  }
+
+  /* ── Pricing price big number ── */
+  .pricing-price {
+    font-size: 2.25rem;
+  }
+
+  /* ── Cancel / success ── */
+  .cancel-container,
+  .success-container {
+    margin: var(--space-lg) auto;
+    padding: var(--space-lg);
+  }
+
+  /* ── Hash card ── */
+  .hash-card {
+    padding: var(--space-md);
+  }
+
+  /* ── Infobox table: hide label column ── */
+  .infobox-table th {
+    display: none;
+  }
+
+  .infobox-table td {
+    display: block;
+    padding: var(--space-xs) 0;
+  }
+
+  .infobox-table tr {
+    display: block;
+    padding: var(--space-sm) 0;
+  }
+
+  /* ── Search suggestions chip wrap ── */
+  .search-suggestions {
+    gap: var(--space-xs);
+  }
+
+  .suggestion-chip {
+    font-size: 0.8rem;
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  /* ── Pro offer ── */
+  .pro-offer {
+    padding: var(--space-lg);
   }
 }
 
@@ -2433,51 +2709,4 @@ pre code {
   color: var(--text-secondary);
   margin-bottom: var(--space-sm);
   line-height: 1.7;
-}
-
-/* ========================================
-   RESPONSIVE — PAGE-SPECIFIC ADDITIONS
-   ======================================== */
-
-@media (max-width: 768px) {
-  .video-link {
-    flex-direction: column;
-  }
-
-  .video-thumb-wrap {
-    width: 100%;
-    height: 180px;
-  }
-
-  .news-link {
-    flex-direction: column;
-  }
-
-  .news-thumb-wrap {
-    width: 100%;
-    height: 160px;
-  }
-
-  .grid-container {
-    grid-template-columns: 1fr;
-  }
-
-  .pricing-container {
-    grid-template-columns: 1fr;
-  }
-
-  .action-buttons {
-    flex-direction: column;
-  }
-
-  .retry-btn,
-  .continue-btn,
-  .home-btn {
-    width: 100%;
-    text-align: center;
-  }
-
-  .hash-card {
-    padding: var(--space-lg);
-  }
 }
