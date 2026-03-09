@@ -106,10 +106,10 @@ results page #}
   <a href="/news?q={{ query | urlencode }}">News</a> |
   <a href="/wiki/{{ query | urlencode }}">Wiki</a>
   {% if has_prev %} |
-  <a href="{{ url_for('index', q=query, page=page-1, b=b) }}">← Prev</a>{% endif
-  %} {% if has_next %} |
-  <a href="{{ url_for('index', q=query, page=page+1, b=b) }}">Next →</a>{% endif
-  %}
+  <a href="{{ url_for('search.index', q=query, page=page-1, b=b) }}">← Prev</a
+  >{% endif %} {% if has_next %} |
+  <a href="{{ url_for('search.index', q=query, page=page+1, b=b) }}">Next →</a
+  >{% endif %}
 </nav>
 {% else %} {# Full hero header for homepage #}
 <img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
