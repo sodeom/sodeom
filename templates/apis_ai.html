@@ -125,4 +125,181 @@ curl -X POST "https://sodeom.com/ai" \
     </ul>
   </section>
 </div>
+
+<div class="content-card" style="margin-top: var(--space-xl)">
+  <h1 class="page-title">OpenAI SDK-compatible API</h1>
+  <p class="page-subtitle">
+    Use any OpenAI SDK or tool by pointing it at
+    <code>https://sodeom.com/v1</code> as the base URL.
+  </p>
+
+  <section>
+    <h2>Quick start</h2>
+    <pre>
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://sodeom.com/v1",
+    api_key="any",          # no key required, pass anything
+)
+
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Hello!"}],
+)
+print(response.choices[0].message.content)</pre
+    >
+  </section>
+
+  <section>
+    <h2>Streaming</h2>
+    <pre>
+stream = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Count to 5"}],
+    stream=True,
+)
+for chunk in stream:
+    print(chunk.choices[0].delta.content or "", end="", flush=True)</pre
+    >
+  </section>
+
+  <section>
+    <h2>Endpoints</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Path</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>/v1/models</code></td>
+          <td>List available models.</td>
+        </tr>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>/v1/models/:id</code></td>
+          <td>Retrieve a single model.</td>
+        </tr>
+        <tr>
+          <td><code>POST</code></td>
+          <td><code>/v1/chat/completions</code></td>
+          <td>Create a chat completion (streaming supported).</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Available models</h2>
+    <ul>
+      <li><code>gpt-4o-mini</code> (default)</li>
+      <li><code>gpt-4o</code></li>
+      <li><code>o1-mini</code></li>
+      <li><code>Meta-Llama-3.1-8B-Instruct</code></li>
+      <li><code>Meta-Llama-3.1-70B-Instruct</code></li>
+      <li><code>Mistral-small</code></li>
+      <li><code>Phi-3.5-mini-instruct</code></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Supported parameters</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>model</code></td>
+          <td>string</td>
+          <td>Model ID (default: gpt-4o-mini).</td>
+        </tr>
+        <tr>
+          <td><code>messages</code></td>
+          <td>array</td>
+          <td>Required. Chat history.</td>
+        </tr>
+        <tr>
+          <td><code>stream</code></td>
+          <td>boolean</td>
+          <td>Enable SSE streaming.</td>
+        </tr>
+        <tr>
+          <td><code>temperature</code></td>
+          <td>number</td>
+          <td>Sampling temperature.</td>
+        </tr>
+        <tr>
+          <td><code>max_tokens</code></td>
+          <td>integer</td>
+          <td>Max tokens (default: 1024).</td>
+        </tr>
+        <tr>
+          <td><code>top_p</code></td>
+          <td>number</td>
+          <td>Nucleus sampling.</td>
+        </tr>
+        <tr>
+          <td><code>stop</code></td>
+          <td>string/array</td>
+          <td>Stop sequences.</td>
+        </tr>
+        <tr>
+          <td><code>frequency_penalty</code></td>
+          <td>number</td>
+          <td>Frequency penalty.</td>
+        </tr>
+        <tr>
+          <td><code>presence_penalty</code></td>
+          <td>number</td>
+          <td>Presence penalty.</td>
+        </tr>
+        <tr>
+          <td><code>seed</code></td>
+          <td>integer</td>
+          <td>Deterministic seed.</td>
+        </tr>
+        <tr>
+          <td><code>n</code></td>
+          <td>integer</td>
+          <td>Number of completions.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>curl examples</h2>
+    <pre>
+# List models
+curl https://sodeom.com/v1/models
+
+# Chat completion
+curl https://sodeom.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+
+# Streaming
+curl https://sodeom.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "messages": [{"role": "user", "content": "Count to 5"}],
+    "stream": true
+  }'</pre
+    >
+  </section>
+</div>
 {% endblock %}

@@ -1,6 +1,7 @@
 import atexit
 import hashlib
 import ipaddress
+import json
 import logging
 import mimetypes
 import os
@@ -9,11 +10,13 @@ import secrets
 import socket
 import subprocess
 import time
+import uuid
 from urllib.parse import quote_plus, urlparse
 
 import requests
 from flask import (
     Flask,
+    Response,
     abort,
     jsonify,
     redirect,
@@ -21,6 +24,7 @@ from flask import (
     request,
     send_file,
     send_from_directory,
+    stream_with_context,
 )
 from requests.adapters import HTTPAdapter
 
@@ -297,6 +301,33 @@ def utf8_string_to_binary(input_str: str) -> str:
 # Allowed parameters that can be passed to the AI model
 _ALLOWED_AI_PARAMS = {"model", "messages", "temperature", "max_tokens", "top_p"}
 
+# Models exposed through the OpenAI-compatible /v1/models endpoint
+_AVAILABLE_MODELS = [
+    "gpt-4o-mini",
+    "gpt-4o",
+    "o1-mini",
+    "Meta-Llama-3.1-8B-Instruct",
+    "Meta-Llama-3.1-70B-Instruct",
+    "Mistral-small",
+    "Phi-3.5-mini-instruct",
+]
+
+# Allowed fields for the OpenAI-compatible completions endpoint
+_ALLOWED_COMPLETIONS_PARAMS = {
+    "model",
+    "messages",
+    "temperature",
+    "max_tokens",
+    "top_p",
+    "frequency_penalty",
+    "presence_penalty",
+    "stop",
+    "n",
+    "seed",
+    "logprobs",
+    "response_format",
+}
+
 
 @app.route("/ai", methods=["GET", "POST"])
 def query_ai():
@@ -345,6 +376,154 @@ def query_ai():
     except Exception:
         # Don't leak internal error details to the client
         return jsonify({"error": "AI service temporarily unavailable"}), 500
+
+
+# ---------------------------------------------------------------------------
+# OpenAI SDK-compatible API  (/v1/...)
+# Point the OpenAI SDK at this server:  OpenAI(base_url="https://sodeom.com/v1", api_key="any")
+# ---------------------------------------------------------------------------
+
+
+def _openai_error(
+    message: str,
+    err_type: str = "invalid_request_error",
+    status: int = 400,
+    param: str = None,
+):
+    return jsonify(
+        {"error": {"message": message, "type": err_type, "param": param, "code": None}}
+    ), status
+
+
+@app.route("/v1/models", methods=["GET"])
+def v1_models():
+    now = int(time.time())
+    return jsonify(
+        {
+            "object": "list",
+            "data": [
+                {"id": m, "object": "model", "created": now, "owned_by": "sodeom"}
+                for m in _AVAILABLE_MODELS
+            ],
+        }
+    )
+
+
+@app.route("/v1/models/<path:model_id>", methods=["GET"])
+def v1_model(model_id):
+    if model_id not in _AVAILABLE_MODELS:
+        return _openai_error(
+            f"Model '{model_id}' not found", "invalid_request_error", 404
+        )
+    return jsonify(
+        {
+            "id": model_id,
+            "object": "model",
+            "created": int(time.time()),
+            "owned_by": "sodeom",
+        }
+    )
+
+
+@app.route("/v1/chat/completions", methods=["POST"])
+def v1_chat_completions():
+    body = request.get_json(silent=True) or {}
+
+    # Whitelist — never forward unexpected fields to the upstream client
+    safe_params = {k: v for k, v in body.items() if k in _ALLOWED_COMPLETIONS_PARAMS}
+
+    if "model" not in safe_params:
+        safe_params["model"] = DEFAULT_MODEL
+
+    messages = safe_params.get("messages")
+    if not isinstance(messages, list) or not messages:
+        return _openai_error("messages must be a non-empty array", param="messages")
+
+    for msg in messages:
+        if not isinstance(msg, dict) or "role" not in msg or "content" not in msg:
+            return _openai_error("Each message must have 'role' and 'content' fields")
+        if msg["role"] not in ("system", "user", "assistant", "tool", "function"):
+            return _openai_error(f"Invalid role: {msg['role']}")
+
+    if "max_tokens" not in safe_params:
+        safe_params["max_tokens"] = 1024
+
+    want_stream = bool(body.get("stream", False))
+    completion_id = f"chatcmpl-{uuid.uuid4().hex}"
+    created = int(time.time())
+    model = safe_params["model"]
+
+    if want_stream:
+
+        def _generate():
+            safe_params["stream"] = True
+            try:
+                for chunk in client.chat.completions.create(**safe_params):
+                    delta = {}
+                    finish_reason = None
+                    if chunk.choices:
+                        c = chunk.choices[0]
+                        if c.delta.role:
+                            delta["role"] = c.delta.role
+                        if c.delta.content:
+                            delta["content"] = c.delta.content
+                        finish_reason = c.finish_reason
+                    payload = {
+                        "id": completion_id,
+                        "object": "chat.completion.chunk",
+                        "created": created,
+                        "model": model,
+                        "choices": [
+                            {"index": 0, "delta": delta, "finish_reason": finish_reason}
+                        ],
+                    }
+                    yield f"data: {json.dumps(payload)}\n\n"
+                yield "data: [DONE]\n\n"
+            except Exception:
+                err = {
+                    "error": {
+                        "message": "AI service temporarily unavailable",
+                        "type": "server_error",
+                    }
+                }
+                yield f"data: {json.dumps(err)}\n\n"
+
+        return Response(
+            stream_with_context(_generate()),
+            mimetype="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+
+    # Non-streaming response
+    try:
+        resp = client.chat.completions.create(**safe_params)
+        choice = resp.choices[0]
+        usage = resp.usage
+        return jsonify(
+            {
+                "id": completion_id,
+                "object": "chat.completion",
+                "created": created,
+                "model": model,
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": choice.message.content,
+                        },
+                        "finish_reason": choice.finish_reason or "stop",
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": usage.prompt_tokens if usage else 0,
+                    "completion_tokens": usage.completion_tokens if usage else 0,
+                    "total_tokens": usage.total_tokens if usage else 0,
+                },
+            }
+        )
+    except Exception:
+        return _openai_error("AI service temporarily unavailable", "server_error", 500)
 
 
 def binary_to_utf8_string(binary_str: str) -> str:
