@@ -12,6 +12,9 @@ from flask import (
     request,
     send_file,
 )
+
+from core.services.image import install_image
+from core.utils.encoding import binary_to_utf8_string, utf8_string_to_binary
 from search.results import (
     search_first_image_url,
     search_images,
@@ -20,9 +23,6 @@ from search.results import (
     search_web,
     search_wiki,
 )
-
-from core.services.image import install_image
-from core.utils.encoding import binary_to_utf8_string, utf8_string_to_binary
 
 search_bp = Blueprint("search", __name__)
 
@@ -160,6 +160,21 @@ def wiki(query):
         results=results,
         suggestions=suggestions,
     )
+
+
+@search_bp.route("/api/wiki")
+def wiki_json():
+    q = request.args.get("q", "")
+    if not q:
+        return jsonify({"infoboxes": [], "answers": []})
+    try:
+        data = search_wiki(q)
+        infoboxes = data.get("infoboxes", [])
+        answers = data.get("answers", [])
+    except Exception:
+        infoboxes = []
+        answers = []
+    return jsonify({"infoboxes": infoboxes, "answers": answers})
 
 
 @search_bp.route("/images")

@@ -226,7 +226,9 @@ infoboxes %}
   </div>
   {% endif %}
 </div>
-{% endfor %} {% endif %} {# Web results #}
+{% endfor %} {% endif %} {# Web results #} {% if query and not infoboxes %}
+<div id="wiki-panel" style="display: none"></div>
+{% endif %}
 <ul class="results-list" role="list" aria-label="Search results">
   {% if results %} {% for result in results %}
   <li role="listitem">
@@ -411,6 +413,58 @@ query %}
       submit.disabled = true;
       loading.hidden = false;
     });
+  })();
+
+  // Async wiki knowledge panel
+  (function () {
+    var query = {{ query | tojson }};
+    var panel = document.getElementById('wiki-panel');
+    if (!query || !panel) return;
+
+    function esc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function safeUrl(u) {
+      return /^https?:\/\//.test(u) ? u : '#';
+    }
+
+    fetch('/api/wiki?q=' + encodeURIComponent(query))
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var boxes = data.infoboxes || [];
+        if (!boxes.length) return;
+        var box = boxes[0];
+        var html = '<div class="infobox-card"><div class="infobox-header">';
+        if (box.img_src && /^https?:\/\//.test(box.img_src)) {
+          html += '<img src="' + esc(box.img_src) + '" alt="' + esc(box.id || '') + '" class="infobox-img">';
+        }
+        html += '<div><h3 class="infobox-title">' + esc(box.infobox || box.title || box.id || '') + '</h3>';
+        if (box.infobox) { html += '<p class="infobox-type">' + esc(box.infobox) + '</p>'; }
+        html += '</div></div>';
+        if (box.content) { html += '<p class="infobox-content">' + esc(box.content) + '</p>'; }
+        if (box.attributes && box.attributes.length) {
+          html += '<table class="infobox-table">';
+          for (var i = 0; i < box.attributes.length; i++) {
+            var a = box.attributes[i];
+            if (a.label && a.value) {
+              html += '<tr><th>' + esc(a.label) + '</th><td>' + esc(a.value) + '</td></tr>';
+            }
+          }
+          html += '</table>';
+        }
+        if (box.urls && box.urls.length) {
+          html += '<div class="infobox-links">';
+          for (var j = 0; j < box.urls.length; j++) {
+            var u = box.urls[j];
+            html += '<a href="' + esc(safeUrl(u.url)) + '" target="_blank" rel="noopener noreferrer">' + esc(u.title || u.url) + '</a>';
+          }
+          html += '</div>';
+        }
+        html += '</div>';
+        panel.innerHTML = html;
+        panel.style.display = '';
+      })
+      .catch(function () {});
   })();
 </script>
 {% endblock %}
