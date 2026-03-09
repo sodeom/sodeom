@@ -4,6 +4,7 @@ import atexit
 import os
 import socket
 import subprocess
+import threading
 import time
 
 # Project root: three levels up from app/services/searxng.py
@@ -58,10 +59,24 @@ def start_searxng() -> None:
             time.sleep(1)
             if _port_open("127.0.0.1", 8888):
                 print(f"[SearXNG] Ready after {i + 1}s")
+                _start_watchdog()
                 return
         print("[SearXNG] Warning: instance did not open port 8888 within 60s")
     except Exception as e:
         print(f"[SearXNG] Failed to start: {e}")
+
+
+def _start_watchdog() -> None:
+    """Background thread that restarts SearXNG if it dies."""
+    def _watch():
+        while True:
+            time.sleep(15)
+            if not _port_open("127.0.0.1", 8888):
+                print("[SearXNG] Watchdog: port closed, restarting…")
+                start_searxng()
+
+    t = threading.Thread(target=_watch, daemon=True, name="searxng-watchdog")
+    t.start()
 
 
 def stop_searxng() -> None:
