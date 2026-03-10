@@ -173,7 +173,36 @@ def wiki_json():
     try:
         headers = {"User-Agent": "Sodeom/1.0 (https://sodeom.com)"}
 
-        # Step 1: find best matching Wikipedia page title via opensearch
+        def fetch_summary(title):
+            """Fetch Wikipedia REST summary for a page title."""
+            encoded = urllib.parse.quote(title.replace(" ", "_"))
+            url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{encoded}"
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=5) as r:
+                return json.loads(r.read().decode())
+
+        def fulltext_search(query):
+            """Return first non-disambiguation article title via full-text search."""
+            url = (
+                "https://en.wikipedia.org/w/api.php?action=query&list=search"
+                f"&srsearch={urllib.parse.quote(query)}&srlimit=5"
+                "&srnamespace=0&format=json"
+            )
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=5) as r:
+                data = json.loads(r.read().decode())
+            results = data.get("query", {}).get("search", [])
+            for item in results:
+                title = item.get("title", "")
+                try:
+                    wiki = fetch_summary(title)
+                    if wiki.get("type") != "disambiguation" and wiki.get("title"):
+                        return wiki
+                except Exception:
+                    continue
+            return None
+
+        # Step 1: opensearch to find best candidate title
         search_url = (
             "https://en.wikipedia.org/w/api.php?action=opensearch"
             f"&search={urllib.parse.quote(q)}&limit=1&namespace=0&format=json"
@@ -183,19 +212,17 @@ def wiki_json():
             opensearch = json.loads(resp.read().decode())
 
         titles = opensearch[1] if len(opensearch) > 1 else []
-        if not titles:
-            return jsonify({"infoboxes": [], "answers": []})
 
-        # Step 2: fetch page summary for the top result
-        title_encoded = urllib.parse.quote(titles[0].replace(" ", "_"))
-        summary_url = (
-            f"https://en.wikipedia.org/api/rest_v1/page/summary/{title_encoded}"
-        )
-        req2 = urllib.request.Request(summary_url, headers=headers)
-        with urllib.request.urlopen(req2, timeout=5) as resp2:
-            wiki = json.loads(resp2.read().decode())
+        wiki = None
+        if titles:
+            wiki = fetch_summary(titles[0])
+            # If disambiguation, fall back to full-text search
+            if wiki.get("type") == "disambiguation" or not wiki.get("title"):
+                wiki = fulltext_search(q)
+        else:
+            wiki = fulltext_search(q)
 
-        if wiki.get("type") == "disambiguation" or not wiki.get("title"):
+        if not wiki or wiki.get("type") == "disambiguation" or not wiki.get("title"):
             return jsonify({"infoboxes": [], "answers": []})
 
         box = {
