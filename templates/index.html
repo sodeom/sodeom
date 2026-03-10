@@ -370,7 +370,50 @@ query %}
       return html;
     }
 
-    fetch('/ai?query=' + encodeURIComponent(query))
+    var results = {{ results | tojson }};
+    var infoboxes = {{ infoboxes | tojson }};
+
+    // Build context from search results and infoboxes
+    function buildContext() {
+      var ctx = '';
+      if (infoboxes && infoboxes.length) {
+        var box = infoboxes[0];
+        ctx += 'Knowledge panel: ' + (box.infobox || box.title || '') + '\n';
+        if (box.content) ctx += box.content + '\n';
+        if (box.attributes) {
+          box.attributes.forEach(function(a) {
+            if (a.label && a.value) ctx += a.label + ': ' + a.value + '\n';
+          });
+        }
+        ctx += '\n';
+      }
+      if (results && results.length) {
+        ctx += 'Top search results:\n';
+        var top = results.slice(0, 5);
+        top.forEach(function(r, i) {
+          ctx += (i + 1) + '. ' + (r.title || '') + '\n';
+          if (r.description) ctx += '   ' + r.description.slice(0, 200) + '\n';
+        });
+      }
+      return ctx.trim();
+    }
+
+    var context = buildContext();
+    var messages = [
+      {
+        role: 'system',
+        content: context
+          ? 'You are a concise, factual search assistant. Use the following search context to give a precise, helpful answer in 2-4 sentences. Only use information from the context if relevant.\n\nContext:\n' + context
+          : 'You are a concise search assistant. Answer the user\'s query directly in 2-4 sentences. Be factual and brief.'
+      },
+      { role: 'user', content: query }
+    ];
+
+    fetch('/ai?query=' + encodeURIComponent(query), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: messages })
+    })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         if (data.answer) {
