@@ -45,17 +45,6 @@ endblock %} {% block content %}
           <td>1</td>
           <td>Pagination page (minimum 1).</td>
         </tr>
-        <tr>
-          <td><code>b</code></td>
-          <td>binary string</td>
-          <td>""</td>
-          <td>
-            Optional binary-encoded version of <code>q</code>. If
-            <code>b</code> is present and <code>q</code> is empty, the server
-            decodes it and redirects. If <code>q</code> is present and
-            <code>b</code> is empty, the server encodes and redirects.
-          </td>
-        </tr>
       </tbody>
     </table>
   </section>
@@ -64,9 +53,6 @@ endblock %} {% block content %}
     <h2>Behavior</h2>
     <ol>
       <li>Normalizes <code>page</code> to at least 1.</li>
-      <li>
-        Handles <code>q</code>/<code>b</code> redirects for binary queries.
-      </li>
       <li>Calls <code>main(q, page)</code> to fetch results.</li>
       <li>
         Renders <code>index.html</code> with results and pagination flags.

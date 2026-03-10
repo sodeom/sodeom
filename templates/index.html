@@ -106,9 +106,9 @@ results page #}
   <a href="/news?q={{ query | urlencode }}">News</a> |
   <a href="/wiki/{{ query | urlencode }}">Wiki</a>
   {% if has_prev %} |
-  <a href="{{ url_for('search.index', q=query, page=page-1, b=b) }}">← Prev</a
+  <a href="{{ url_for('search.index', q=query, page=page-1) }}">← Prev</a
   >{% endif %} {% if has_next %} |
-  <a href="{{ url_for('search.index', q=query, page=page+1, b=b) }}">Next →</a
+  <a href="{{ url_for('search.index', q=query, page=page+1) }}">Next →</a
   >{% endif %}
 </nav>
 {% else %} {# Full hero header for homepage #}

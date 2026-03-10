@@ -17,7 +17,6 @@ from flask import (
 )
 
 from core.services.image import install_image
-from core.utils.encoding import binary_to_utf8_string, utf8_string_to_binary
 from search.results import (
     search_first_image_url,
     search_images,
@@ -33,7 +32,6 @@ search_bp = Blueprint("search", __name__)
 @search_bp.route("/")
 def index():
     q = request.args.get("q", "")
-    b = request.args.get("b", "")
     page = request.args.get("page", 1, type=int)
 
     query_error = ""
@@ -44,17 +42,6 @@ def index():
 
     if page < 1:
         page = 1
-
-    if b == "" and q != "":
-        binary = utf8_string_to_binary(q)
-        return redirect(f"/?q={q}&b={binary}&page={page}")
-
-    if b != "" and q == "":
-        try:
-            text = binary_to_utf8_string(b)
-            return redirect(f"/?q={text}&b={b}&page={page}")
-        except ValueError:
-            return redirect("/?q=&b=&page=1")
 
     results = []
     suggestions = []
@@ -86,7 +73,6 @@ def index():
         query=q,
         query_error=query_error,
         page=page,
-        b=b,
         has_next=has_next,
         has_prev=has_prev,
         total_results=total_results,
