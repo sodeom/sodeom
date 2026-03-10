@@ -47,6 +47,20 @@ for p in .venv/bin/python python3 python; do
 done
 info "Using: $PYTHON"
 
+# Check SEARXNG_URL
+$PYTHON -c "
+import os, sys
+sys.path.insert(0,'.')
+try:
+    import dotenv; dotenv.load_dotenv()
+except: pass
+url = os.environ.get('SEARXNG_URL','')
+if url:
+    print('[PASS] SEARXNG_URL set to: ' + url)
+else:
+    print('[WARN] SEARXNG_URL not set — search uses localhost:8888 (may fail on PythonAnywhere)')
+" 2>/dev/null
+
 # Check key packages
 for pkg in flask openai requests; do
     if $PYTHON -c "import $pkg" 2>/dev/null; then
@@ -85,10 +99,16 @@ _get() {
     local url="$1"
     local label="$2"
     local expect="$3"
+    local follow="${4:-}"
+    local tmpfile
+    tmpfile=$(mktemp)
+    local curl_args=(-s -o "$tmpfile" -w "%{http_code}" --max-time 20)
+    [ "$follow" = "-L" ] && curl_args+=(-L)
     local result
-    result=$(curl -s -o /tmp/_sodeom_resp -w "%{http_code}" --max-time 15 "$url" 2>/dev/null)
+    result=$(curl "${curl_args[@]}" "$url" 2>/dev/null)
     local body
-    body=$(cat /tmp/_sodeom_resp 2>/dev/null)
+    body=$(cat "$tmpfile" 2>/dev/null)
+    rm -f "$tmpfile"
     if [ "$result" = "200" ]; then
         if [ -n "$expect" ] && ! echo "$body" | grep -qi "$expect" 2>/dev/null; then
             fail "$label — HTTP 200 but expected content '$expect' not found"
@@ -103,10 +123,10 @@ _get() {
 }
 
 _get "$BASE_URL/" "Homepage" "Sodeom"
-_get "$BASE_URL/?q=python" "Web search (python)" "result"
+_get "$BASE_URL/?q=python" "Web search (python)" "Sodeom" "-L"
 _get "$BASE_URL/api/wiki?q=Albert+Einstein" "Wiki panel API" "Albert Einstein"
-_get "$BASE_URL/images?q=cat" "Image search" ""
-_get "$BASE_URL/news?q=technology" "News search" ""
+_get "$BASE_URL/images?q=cat" "Image search" "" "-L"
+_get "$BASE_URL/news?q=technology" "News search" "" "-L"
 
 # ── 6. Wiki API JSON check ────────────────────────────────────────────────────
 section "6. Wiki API Response Detail"
