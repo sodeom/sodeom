@@ -1,7 +1,10 @@
 """Search-related routes: web, images, videos, news, wiki, and placeholder."""
 
+import json
 import mimetypes
 import os
+import urllib.parse
+import urllib.request
 
 from flask import (
     Blueprint,
@@ -168,13 +171,51 @@ def wiki_json():
     if not q:
         return jsonify({"infoboxes": [], "answers": []})
     try:
-        data = search_wiki(q)
-        infoboxes = data.get("infoboxes", [])
-        answers = data.get("answers", [])
+        headers = {"User-Agent": "Sodeom/1.0 (https://sodeom.com)"}
+
+        # Step 1: find best matching Wikipedia page title via opensearch
+        search_url = (
+            "https://en.wikipedia.org/w/api.php?action=opensearch"
+            f"&search={urllib.parse.quote(q)}&limit=1&namespace=0&format=json"
+        )
+        req = urllib.request.Request(search_url, headers=headers)
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            opensearch = json.loads(resp.read().decode())
+
+        titles = opensearch[1] if len(opensearch) > 1 else []
+        if not titles:
+            return jsonify({"infoboxes": [], "answers": []})
+
+        # Step 2: fetch page summary for the top result
+        title_encoded = urllib.parse.quote(titles[0].replace(" ", "_"))
+        summary_url = (
+            f"https://en.wikipedia.org/api/rest_v1/page/summary/{title_encoded}"
+        )
+        req2 = urllib.request.Request(summary_url, headers=headers)
+        with urllib.request.urlopen(req2, timeout=5) as resp2:
+            wiki = json.loads(resp2.read().decode())
+
+        if wiki.get("type") == "disambiguation" or not wiki.get("title"):
+            return jsonify({"infoboxes": [], "answers": []})
+
+        box = {
+            "infobox": wiki.get("title", ""),
+            "id": wiki.get("content_urls", {}).get("desktop", {}).get("page", ""),
+            "content": wiki.get("extract", ""),
+            "img_src": (wiki.get("thumbnail") or {}).get("source", ""),
+            "attributes": [],
+            "urls": [
+                {
+                    "title": "Wikipedia",
+                    "url": wiki.get("content_urls", {})
+                    .get("desktop", {})
+                    .get("page", ""),
+                }
+            ],
+        }
+        return jsonify({"infoboxes": [box], "answers": []})
     except Exception:
-        infoboxes = []
-        answers = []
-    return jsonify({"infoboxes": infoboxes, "answers": answers})
+        return jsonify({"infoboxes": [], "answers": []})
 
 
 @search_bp.route("/images")
