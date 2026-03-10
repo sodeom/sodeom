@@ -1,6 +1,8 @@
 """AI routes: legacy /ai endpoint and OpenAI SDK-compatible /v1/* endpoints."""
 
 import json
+import subprocess
+import sys
 import time
 import uuid
 
@@ -74,6 +76,23 @@ _BUILTIN_TOOLS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "run_python",
+            "description": (
+                "Execute Python code and return the output. "
+                "Use this whenever the user asks you to run, execute, or test code."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "code": {"type": "string", "description": "Python code to run"},
+                },
+                "required": ["code"],
+            },
+        },
+    },
 ]
 
 
@@ -115,6 +134,27 @@ def _execute_tool(name: str, arguments_json: str) -> str:
             f"{r['title']} ({r.get('publishedDate', '')})\n{r['description']}\n{r['link']}"
             for r in results
         )
+
+    if name == "run_python":
+        code = args.get("code", "")
+        if not code.strip():
+            return "Error: no code provided"
+        try:
+            result = subprocess.run(
+                [sys.executable, "-c", code],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            output = result.stdout + result.stderr
+            # Truncate to avoid huge responses
+            if len(output) > 4000:
+                output = output[:4000] + "\n[output truncated]"
+            return output if output.strip() else "(no output)"
+        except subprocess.TimeoutExpired:
+            return "Error: execution timed out (10s limit)"
+        except Exception as e:
+            return f"Error: {e}"
 
     return f"Unknown tool: {name}"
 
