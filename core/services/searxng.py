@@ -69,7 +69,16 @@ def _start_searxng_blocking() -> None:
 
 
 def start_searxng() -> None:
-    """Kick off SearXNG startup in a background thread so it never blocks requests."""
+    """Kick off SearXNG startup in a background thread so it never blocks requests.
+
+    Skipped entirely when SEARXNG_URL is explicitly set — in that case the
+    external/pre-started instance is used directly and there is no need (or
+    safety) to spawn a local subprocess from inside a forked WSGI worker.
+    """
+    if os.getenv("SEARXNG_URL", "").strip():
+        print("[SearXNG] SEARXNG_URL is set — skipping local subprocess start")
+        return
+
     t = threading.Thread(
         target=_start_searxng_blocking, daemon=True, name="searxng-start"
     )
