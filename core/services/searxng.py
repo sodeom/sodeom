@@ -24,12 +24,14 @@ def _port_open(host: str, port: int, timeout: float = 1.0) -> bool:
         return False
 
 
-def start_searxng() -> None:
-    """Start SearXNG as a background subprocess if not already running."""
+def _start_searxng_blocking() -> None:
+    """Internal: start SearXNG subprocess and wait for it to be ready.
+    Runs in a background thread so app startup is never blocked."""
     global _SEARXNG_PROC
 
-    if _port_open("127.0.0.1", 8888):
+    if _port_open("127.0.0.1", 8888, timeout=0.3):
         print("[SearXNG] Already running on port 8888")
+        _start_watchdog()
         return
 
     if not os.path.exists(_SEARXNG_PYTHON):
@@ -57,13 +59,21 @@ def start_searxng() -> None:
 
         for i in range(60):
             time.sleep(1)
-            if _port_open("127.0.0.1", 8888):
+            if _port_open("127.0.0.1", 8888, timeout=0.3):
                 print(f"[SearXNG] Ready after {i + 1}s")
                 _start_watchdog()
                 return
         print("[SearXNG] Warning: instance did not open port 8888 within 60s")
     except Exception as e:
         print(f"[SearXNG] Failed to start: {e}")
+
+
+def start_searxng() -> None:
+    """Kick off SearXNG startup in a background thread so it never blocks requests."""
+    t = threading.Thread(
+        target=_start_searxng_blocking, daemon=True, name="searxng-start"
+    )
+    t.start()
 
 
 def _start_watchdog() -> None:

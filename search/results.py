@@ -51,9 +51,9 @@ _session.mount("http://", _http_adapter)
 _session.mount("https://", _http_adapter)
 
 # ---------------------------------------------------------------------------
-# In-memory TTL result cache (thread-safe, 60-second TTL, max 300 entries)
+# In-memory TTL result cache (thread-safe, 5-minute TTL, max 300 entries)
 # ---------------------------------------------------------------------------
-_CACHE_TTL = 60  # seconds
+_CACHE_TTL = 300  # seconds
 _cache: dict = {}
 _cache_lock = threading.Lock()
 
@@ -112,11 +112,11 @@ def _fetch_instance(base_url: str, params: dict, timeout: int) -> "dict | None":
 
 
 # How long to wait before retrying when SearXNG returns no results
-_RETRY_DELAY = 1  # seconds
+_RETRY_DELAY = 0.3  # seconds
 _MAX_RETRIES = 2  # one retry after a short pause
 
 
-def _query_searxng(params: dict, timeout: int = 12) -> "dict | None":
+def _query_searxng(params: dict, timeout: int = 8) -> "dict | None":
     """
     Query the local SearXNG instance with automatic retry.
     Retries up to _MAX_RETRIES times if the instance is still starting up
@@ -187,7 +187,7 @@ def search_web(query: str, page: int = 1, language: str = "en") -> dict:
         # No engine restriction — let SearXNG use whatever is enabled in
         # settings_local.yml so the query works on any deployment
     }
-    data = _query_searxng(params, timeout=12)
+    data = _query_searxng(params, timeout=8)
 
     if data is None:
         return _empty_response(query, page)
@@ -237,7 +237,7 @@ def search_images(query: str, page: int = 1, language: str = "en") -> dict:
         "pageno": page,
         "language": language,
     }
-    data = _query_searxng(params, timeout=12)
+    data = _query_searxng(params, timeout=8)
 
     if data is None:
         return _empty_response(query, page)
@@ -286,7 +286,7 @@ def search_first_image_url(query: str, count: int = 3) -> list[str]:
         "categories": "images",
         "pageno": 1,
     }
-    data = _query_searxng(params, timeout=12)
+    data = _query_searxng(params, timeout=8)
     if data is None:
         return []
     urls = []
@@ -311,7 +311,7 @@ def search_videos(query: str, page: int = 1, language: str = "en") -> dict:
         "pageno": page,
         "language": language,
     }
-    data = _query_searxng(params, timeout=12)
+    data = _query_searxng(params, timeout=8)
 
     if data is None:
         return _empty_response(query, page)
@@ -363,7 +363,7 @@ def search_news(query: str, page: int = 1, language: str = "en") -> dict:
         "pageno": page,
         "language": language,
     }
-    data = _query_searxng(params, timeout=12)
+    data = _query_searxng(params, timeout=8)
 
     if data is None:
         return _empty_response(query, page)
