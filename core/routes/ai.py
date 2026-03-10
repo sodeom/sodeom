@@ -17,6 +17,107 @@ from core.services.ai_client import (
 
 ai_bp = Blueprint("ai", __name__)
 
+# ---------------------------------------------------------------------------
+# Built-in tools for the agentic endpoint
+# ---------------------------------------------------------------------------
+
+_BUILTIN_TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "web_search",
+            "description": "Search the web for current information on a topic.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Search query"},
+                    "page": {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "default": 1,
+                    },
+                },
+                "required": ["query"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "wiki_lookup",
+            "description": "Look up factual information from Wikipedia.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Topic to look up"},
+                },
+                "required": ["query"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "news_search",
+            "description": "Search for recent news articles on a topic.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "News search query"},
+                    "page": {
+                        "type": "integer",
+                        "description": "Page number (default 1)",
+                        "default": 1,
+                    },
+                },
+                "required": ["query"],
+            },
+        },
+    },
+]
+
+
+def _execute_tool(name: str, arguments_json: str) -> str:
+    """Execute a built-in tool and return its result as a plain string."""
+    from search.results import search_news, search_web, search_wiki
+
+    try:
+        args = json.loads(arguments_json)
+    except Exception:
+        return "Error: invalid tool arguments"
+
+    if name == "web_search":
+        data = search_web(args.get("query", ""), args.get("page", 1))
+        results = data.get("results", [])[:5]
+        if not results:
+            return "No results found."
+        return "\n\n".join(
+            f"{r['title']}\n{r['description']}\n{r['link']}" for r in results
+        )
+
+    if name == "wiki_lookup":
+        data = search_wiki(args.get("query", ""))
+        boxes = data.get("infoboxes", [])
+        if boxes:
+            b = boxes[0]
+            return f"{b.get('infobox', '')}: {b.get('content', '')}"
+        results = data.get("results", [])[:3]
+        if results:
+            return "\n".join(f"{r['title']}: {r['description']}" for r in results)
+        return "No information found."
+
+    if name == "news_search":
+        data = search_news(args.get("query", ""), args.get("page", 1))
+        results = data.get("results", [])[:5]
+        if not results:
+            return "No news found."
+        return "\n\n".join(
+            f"{r['title']} ({r.get('publishedDate', '')})\n{r['description']}\n{r['link']}"
+            for r in results
+        )
+
+    return f"Unknown tool: {name}"
+
 
 @ai_bp.route("/ai", methods=["GET", "POST"])
 def query_ai():
@@ -114,10 +215,16 @@ def v1_chat_completions():
         return openai_error("messages must be a non-empty array", param="messages")
 
     for msg in messages:
-        if not isinstance(msg, dict) or "role" not in msg or "content" not in msg:
-            return openai_error("Each message must have 'role' and 'content' fields")
-        if msg["role"] not in ("system", "user", "assistant", "tool", "function"):
-            return openai_error(f"Invalid role: {msg['role']}")
+        if not isinstance(msg, dict) or "role" not in msg:
+            return openai_error("Each message must have a 'role' field")
+        role = msg["role"]
+        if role not in ("system", "user", "assistant", "tool", "function"):
+            return openai_error(f"Invalid role: {role}")
+        # tool-result messages use tool_call_id instead of content
+        if role not in ("tool", "function") and "content" not in msg:
+            return openai_error(
+                f"Message with role '{role}' must have a 'content' field"
+            )
 
     if "max_tokens" not in safe_params:
         safe_params["max_tokens"] = 1024
@@ -141,6 +248,22 @@ def v1_chat_completions():
                             delta["role"] = c.delta.role
                         if c.delta.content:
                             delta["content"] = c.delta.content
+                        # Pass through tool_calls deltas
+                        if c.delta.tool_calls:
+                            delta["tool_calls"] = [
+                                {
+                                    "index": tc.index,
+                                    "id": tc.id,
+                                    "type": "function",
+                                    "function": {
+                                        "name": tc.function.name if tc.function else "",
+                                        "arguments": tc.function.arguments
+                                        if tc.function
+                                        else "",
+                                    },
+                                }
+                                for tc in c.delta.tool_calls
+                            ]
                         finish_reason = c.finish_reason
                     payload = {
                         "id": completion_id,
@@ -172,6 +295,24 @@ def v1_chat_completions():
         resp = client.chat.completions.create(**safe_params)
         choice = resp.choices[0]
         usage = resp.usage
+        msg = choice.message
+        message_out = {
+            "role": "assistant",
+            "content": msg.content,
+        }
+        # Pass through tool_calls if the model wants to call a function
+        if msg.tool_calls:
+            message_out["tool_calls"] = [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {
+                        "name": tc.function.name,
+                        "arguments": tc.function.arguments,
+                    },
+                }
+                for tc in msg.tool_calls
+            ]
         return jsonify(
             {
                 "id": completion_id,
@@ -181,10 +322,7 @@ def v1_chat_completions():
                 "choices": [
                     {
                         "index": 0,
-                        "message": {
-                            "role": "assistant",
-                            "content": choice.message.content,
-                        },
+                        "message": message_out,
                         "finish_reason": choice.finish_reason or "stop",
                     }
                 ],
@@ -197,3 +335,96 @@ def v1_chat_completions():
         )
     except Exception:
         return openai_error("AI service temporarily unavailable", "server_error", 500)
+
+
+# ---------------------------------------------------------------------------
+# Agentic endpoint — built-in search tools with automatic tool-call loop
+# POST /ai/agent
+# Body: { "query": "...", "model": "...", "max_steps": 5 }
+#    or: { "messages": [...], "model": "...", "max_steps": 5 }
+# Response: { "answer": "...", "messages": [...], "steps": N }
+# ---------------------------------------------------------------------------
+
+
+@ai_bp.route("/ai/agent", methods=["POST"])
+def ai_agent():
+    body = request.get_json(silent=True) or {}
+    model = body.get("model", DEFAULT_MODEL)
+    max_steps = min(int(body.get("max_steps", 5)), 10)
+
+    messages = body.get("messages")
+    if not messages:
+        query = body.get("query", "").strip()
+        if not query:
+            return jsonify({"error": "Provide 'query' or 'messages'"}), 400
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are a helpful search assistant with access to web search, "
+                    "Wikipedia, and news tools. Use them to give accurate, up-to-date answers."
+                ),
+            },
+            {"role": "user", "content": query},
+        ]
+    else:
+        if not isinstance(messages, list) or not messages:
+            return jsonify({"error": "'messages' must be a non-empty array"}), 400
+        messages = list(messages)  # copy so we can append
+
+    for step in range(max_steps):
+        try:
+            resp = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                tools=_BUILTIN_TOOLS,
+                tool_choice="auto",
+                max_tokens=1024,
+            )
+        except Exception:
+            return jsonify({"error": "AI service temporarily unavailable"}), 500
+
+        choice = resp.choices[0]
+        msg = choice.message
+
+        # Add assistant turn (may contain tool_calls)
+        assistant_turn = {"role": "assistant", "content": msg.content or ""}
+        if msg.tool_calls:
+            assistant_turn["tool_calls"] = [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {
+                        "name": tc.function.name,
+                        "arguments": tc.function.arguments,
+                    },
+                }
+                for tc in msg.tool_calls
+            ]
+        messages.append(assistant_turn)
+
+        if choice.finish_reason == "stop" or not msg.tool_calls:
+            return jsonify(
+                {"answer": msg.content or "", "messages": messages, "steps": step + 1}
+            )
+
+        # Execute every tool call and add results
+        for tc in msg.tool_calls:
+            result = _execute_tool(tc.function.name, tc.function.arguments)
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tc.id,
+                    "content": result,
+                }
+            )
+
+    # Ran out of steps — return last assistant content
+    last = next((m for m in reversed(messages) if m.get("role") == "assistant"), None)
+    return jsonify(
+        {
+            "answer": last.get("content", "") if last else "",
+            "messages": messages,
+            "steps": max_steps,
+        }
+    )
