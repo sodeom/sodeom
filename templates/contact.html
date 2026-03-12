@@ -1,29 +1,127 @@
-{% extends "base.html" %}
-
-{% block title %}Sodi - Innovating the Future{% endblock %}
-
-{% block content %}
-<!-- Contact Section -->
+{% extends "base.html" %} {% block title %}Contact &amp; Feedback – Sodeom{%
+endblock %} {% block content %}
 <section class="contact">
-    <div class="container">
-        <h2>Contact Us</h2>
-        <p>If you have any questions, feedback, or issues, feel free to reach out to us. We'd love to hear from you!</p>
+  <div class="container">
+    <h2>Contact &amp; Feedback</h2>
+    <p>
+      Your feedback directly shapes Sodeom. Tell us what's working, what's
+      broken, and what to build next.
+    </p>
 
-        <form action="https://formspree.io/f/xwpvvbep" method="POST" class="contact-form">
-            <div class="form-group">
-                <label for="name">Your Name:</label>
-                <input type="text" id="name" name="name" placeholder="Enter your name" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Your Email:</label>
-                <input type="email" id="email" name="_replyto" placeholder="Enter your email" required>
-            </div>
-            <div class="form-group">
-                <label for="message">Your Message:</label>
-                <textarea id="message" name="message" rows="5" placeholder="Enter your message" required></textarea>
-            </div>
-            <button type="submit" class="btn play-btn">Send Message</button>
-        </form>
-    </div>
+    <!-- Quick feedback -->
+    <h3 style="margin-top: 2rem">Quick Feedback</h3>
+    <form
+      action="https://formspree.io/f/xwpvvbep"
+      method="POST"
+      class="contact-form"
+    >
+      <input type="hidden" name="_subject" value="Sodeom Quick Feedback" />
+      <div class="form-group">
+        <label for="speed">Are results fast enough?</label>
+        <input
+          type="text"
+          id="speed"
+          name="speed"
+          placeholder="e.g. Yes / No / Sometimes slow"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="relevance">Are the results relevant?</label>
+        <input
+          type="text"
+          id="relevance"
+          name="relevance"
+          placeholder="e.g. Usually yes, but…"
+        />
+      </div>
+      <div class="form-group">
+        <label for="feature">What feature should be added next?</label>
+        <input
+          type="text"
+          id="feature"
+          name="feature"
+          placeholder="e.g. Dark mode, more sources…"
+        />
+      </div>
+      <div class="form-group">
+        <label for="found">How did you find Sodeom?</label>
+        <input
+          type="text"
+          id="found"
+          name="found"
+          placeholder="e.g. GitHub, a friend, Google…"
+        />
+      </div>
+      <div class="form-group">
+        <label for="fb_email"
+          >Your email (optional – only if you want a reply)</label
+        >
+        <input
+          type="email"
+          id="fb_email"
+          name="_replyto"
+          placeholder="you@example.com"
+        />
+      </div>
+      <button type="submit" class="btn play-btn">Send Feedback</button>
+    </form>
+
+    <!-- General contact -->
+    <h3 style="margin-top: 3rem">General Contact</h3>
+    <form
+      action="https://formspree.io/f/xwpvvbep"
+      method="POST"
+      class="contact-form"
+    >
+      <input type="hidden" name="_subject" value="Sodeom Contact" />
+      <div class="form-group">
+        <label for="name">Your Name</label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          placeholder="Enter your name"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="email">Your Email</label>
+        <input
+          type="email"
+          id="email"
+          name="_replyto"
+          placeholder="Enter your email"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="message">Your Message</label>
+        <textarea
+          id="message"
+          name="message"
+          rows="5"
+          placeholder="Enter your message"
+          required
+        ></textarea>
+      </div>
+      <button type="submit" class="btn play-btn">Send Message</button>
+    </form>
+
+    <!-- GitHub -->
+    <h3 style="margin-top: 3rem">Report a Bug or Request a Feature</h3>
+    <p>
+      Open an issue directly on GitHub — bugs become trackable, feature ideas
+      stay organised, and you'll see progress.
+    </p>
+    <a
+      href="https://github.com/sodeom/sodeom/issues"
+      class="btn play-btn"
+      target="_blank"
+      rel="noopener"
+    >
+      Open a GitHub Issue
+    </a>
+  </div>
 </section>
 {% endblock %}
