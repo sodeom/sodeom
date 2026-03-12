@@ -104,7 +104,8 @@ results page #}
   <a href="/images?q={{ query | urlencode }}">Images</a> |
   <a href="/videos?q={{ query | urlencode }}">Videos</a> |
   <a href="/news?q={{ query | urlencode }}">News</a> |
-  <a href="/wiki/{{ query | urlencode }}">Wiki</a>
+  <a href="/wiki/{{ query | urlencode }}">Wiki</a> |
+  <a href="/contact">Feedback</a>
   {% if has_prev %} |
   <a href="{{ url_for('search.index', q=query, page=page-1) }}">← Prev</a>{%
   endif %} {% if has_next %} |
