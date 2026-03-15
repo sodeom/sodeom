@@ -86,6 +86,7 @@ def _ensure_local_searxng_started() -> None:
     except Exception as e:
         logger.debug("[SearXNG] Local auto-start skipped: %s", e)
 
+
 # ---------------------------------------------------------------------------
 # In-memory TTL result cache (thread-safe, 5-minute TTL, max 300 entries)
 # ---------------------------------------------------------------------------
