@@ -26,6 +26,10 @@ _LOCAL_INSTANCE = "http://localhost:8888"
 
 # Prefer a self-hosted instance via env var; fall back to local, then public.
 _PRIMARY_INSTANCE = os.getenv("SEARXNG_URL", "").rstrip("/")
+_PUBLIC_FALLBACKS = [
+    "https://searx.be",
+    "https://search.sapti.me",
+]
 
 HEADERS = {
     "User-Agent": (
@@ -49,6 +53,38 @@ _session = requests.Session()
 _http_adapter = HTTPAdapter(pool_connections=10, pool_maxsize=20)
 _session.mount("http://", _http_adapter)
 _session.mount("https://", _http_adapter)
+
+
+def _local_port_open(timeout: float = 0.3) -> bool:
+    """Return True if local SearXNG is listening on localhost:8888."""
+    try:
+        resp = _session.get(f"{_LOCAL_INSTANCE}/healthz", timeout=timeout)
+        return resp.status_code in (200, 404)
+    except Exception:
+        return False
+
+
+def _ensure_local_searxng_started() -> None:
+    """Try to boot local SearXNG when localhost instance is unavailable.
+
+    This keeps searches working in local/dev environments if the subprocess
+    has died. In hosted environments that intentionally disable local start,
+    start_searxng() will safely no-op.
+    """
+    if _local_port_open():
+        return
+    try:
+        from core.services.searxng import start_searxng
+
+        start_searxng()
+        # Give the subprocess a short window to boot so this same request
+        # can still return results instead of requiring a second refresh.
+        for _ in range(6):
+            if _local_port_open(timeout=0.5):
+                return
+            time.sleep(0.5)
+    except Exception as e:
+        logger.debug("[SearXNG] Local auto-start skipped: %s", e)
 
 # ---------------------------------------------------------------------------
 # In-memory TTL result cache (thread-safe, 5-minute TTL, max 300 entries)
@@ -83,9 +119,33 @@ def _cache_set(key: str, data: dict) -> None:
 
 def _get_instances():
     """Return the SearXNG base URL to use.
-    Prefers SEARXNG_URL env var, falls back to local instance.
+    Prefers SEARXNG_URL env var, then local instance, then public fallbacks.
     """
-    return [_PRIMARY_INSTANCE or _LOCAL_INSTANCE]
+    instances = []
+
+    if _PRIMARY_INSTANCE:
+        instances.append(_PRIMARY_INSTANCE)
+
+    instances.append(_LOCAL_INSTANCE)
+
+    # Allow overriding fallback list via env var if needed.
+    # Example: SEARXNG_FALLBACKS="https://a.example,https://b.example"
+    custom_fallbacks = os.getenv("SEARXNG_FALLBACKS", "").strip()
+    if custom_fallbacks:
+        instances.extend(
+            [u.strip().rstrip("/") for u in custom_fallbacks.split(",") if u.strip()]
+        )
+    else:
+        instances.extend(_PUBLIC_FALLBACKS)
+
+    # Deduplicate while preserving order.
+    seen = set()
+    ordered = []
+    for instance in instances:
+        if instance not in seen:
+            seen.add(instance)
+            ordered.append(instance)
+    return ordered
 
 
 # ---------------------------------------------------------------------------
@@ -118,14 +178,17 @@ _MAX_RETRIES = 2  # one retry after a short pause
 
 def _query_searxng(params: dict, timeout: int = 8) -> "dict | None":
     """
-    Query the local SearXNG instance with automatic retry.
-    Retries up to _MAX_RETRIES times if the instance is still starting up
-    or returned an empty result set. No public instance fallback — the
-    production machine has no outbound access to external instances.
+    Query SearXNG instances with automatic retry.
+    Tries instances in priority order (primary -> local -> fallbacks), and
+    retries each instance up to _MAX_RETRIES times before moving on.
     Only responses with actual results are cached.
     """
     params = {**params, "format": "json"}
     params.setdefault("safesearch", "1")
+
+    # If local instance is part of the fallback chain and currently down,
+    # attempt to start it in the background before querying.
+    _ensure_local_searxng_started()
 
     # --- Cache check ---
     cache_key = json.dumps(params, sort_keys=True)
@@ -133,20 +196,18 @@ def _query_searxng(params: dict, timeout: int = 8) -> "dict | None":
     if cached is not None:
         return cached
 
-    instance = _PRIMARY_INSTANCE or _LOCAL_INSTANCE
-
     last: "dict | None" = None
-    for attempt in range(_MAX_RETRIES):
-        data = _fetch_instance(instance, params, timeout=timeout)
-        if data is not None and data.get("results"):
-            _cache_set(cache_key, data)
-            return data
-        if data is not None:
-            last = data  # keep as fallback (has structure, just empty results)
-        if attempt < _MAX_RETRIES - 1:
-            # Small pause — SearXNG may still be initialising or the engine
-            # hit a transient upstream timeout; a short wait often resolves it
-            time.sleep(_RETRY_DELAY)
+    for instance in _get_instances():
+        for attempt in range(_MAX_RETRIES):
+            data = _fetch_instance(instance, params, timeout=timeout)
+            if data is not None and data.get("results"):
+                _cache_set(cache_key, data)
+                return data
+            if data is not None:
+                last = data  # keep as fallback (has structure, just empty results)
+            if attempt < _MAX_RETRIES - 1:
+                # Small pause — the engine may have hit a transient timeout.
+                time.sleep(_RETRY_DELAY)
 
     # Return empty-but-structured response rather than None so callers can
     # distinguish "SearXNG reachable but no results" from "SearXNG down".
