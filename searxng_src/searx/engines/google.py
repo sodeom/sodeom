@@ -69,7 +69,7 @@ filter_mapping = {0: "off", 1: "medium", 2: "high"}
 
 # Suggestions are links placed in a *card-section*, we extract only the text
 # from the links not the links itself.
-suggestion_xpath = '//div[contains(@class, "ouy7Mc")]//a'
+suggestion_xpath = '//div[contains(@class, "gGQDvd iIWm4b")]//a'
 
 
 _arcid_range = string.ascii_letters + string.digits + "_-"
@@ -327,23 +327,16 @@ def request(query: str, params: "OnlineParams") -> None:
     params["headers"].update(google_info["headers"])
 
 
-# =26;[3,"dimg_ZNMiZPCqE4apxc8P3a2tuAQ_137"]a87;data:image/jpeg;base64,/9j/4AAQSkZJRgABA
-# ...6T+9Nl4cnD+gr9OK8I56/tX3l86nWYw//2Q==26;
-RE_DATA_IMAGE = re.compile(r'"(dimg_[^"]*)"[^;]*;(data:image[^;]*;[^;]*);')
-RE_DATA_IMAGE_end = re.compile(r'"(dimg_[^"]*)"[^;]*;(data:image[^;]*;[^;]*)$')
+# regex match to get image map that is found inside the returned javascript:
+# (function(){var s='...';var i=['...'] ...}
+RE_DATA_IMAGE = re.compile(r"(data:image[^']*?)'[^']*?'((?:dimg|pimg|tsuid)[^']*)")
 
 
-def parse_data_images(text: str):
+def parse_url_images(text: str):
     data_image_map = {}
 
-    for img_id, data_image in RE_DATA_IMAGE.findall(text):
-        end_pos = data_image.rfind("=")
-        if end_pos > 0:
-            data_image = data_image[: end_pos + 1]
-        data_image_map[img_id] = data_image
-    last = RE_DATA_IMAGE_end.search(text)
-    if last:
-        data_image_map[last.group(1)] = last.group(2)
+    for image_url, img_id in RE_DATA_IMAGE.findall(text):
+        data_image_map[img_id] = image_url.encode('utf-8').decode("unicode-escape")
     logger.debug("data:image objects --> %s", list(data_image_map.keys()))
     return data_image_map
 
@@ -352,7 +345,7 @@ def response(resp: "SXNG_Response"):
     """Get response from google's search request"""
     # pylint: disable=too-many-branches, too-many-statements
     detect_google_sorry(resp)
-    data_image_map = parse_data_images(resp.text)
+    data_image_map = parse_url_images(resp.text)
 
     results = EngineResults()
 
@@ -360,52 +353,49 @@ def response(resp: "SXNG_Response"):
     dom = html.fromstring(resp.text)
 
     # parse results
-
-    for result in eval_xpath_list(dom, './/div[contains(@class, "MjjYud")]'):
+    for result in eval_xpath_list(dom, '//a[@data-ved and not(@class)]'):
         # pylint: disable=too-many-nested-blocks
 
         try:
-            title_tag = eval_xpath_getindex(result, './/div[contains(@role, "link")]', 0, default=None)
+            title_tag = eval_xpath_getindex(result, './/div[@style]', 0, default=None)
             if title_tag is None:
                 # this not one of the common google results *section*
                 logger.debug("ignoring item from the result_xpath list: missing title")
                 continue
             title = extract_text(title_tag)
 
-            raw_url = eval_xpath_getindex(result, ".//a/@href", 0, None)
+            raw_url = result.get("href")
             if raw_url is None:
                 logger.debug(
                     'ignoring item from the result_xpath list: missing url of title "%s"',
                     title,
                 )
                 continue
-            url = unquote(raw_url[7:].split("&sa=U")[0])  # remove the google redirector
 
-            content_nodes = eval_xpath(result, './/div[contains(@data-sncf, "1")]')
+            if raw_url.startswith('/url?q='):
+                url = unquote(raw_url[7:].split("&sa=U")[0])  # remove the google redirector
+            else:
+                url = raw_url
+
+            content_nodes = eval_xpath(result, '../..//div[contains(@class, "ilUpNd H66NU aSRlid")]')
             for item in content_nodes:
                 for script in item.xpath(".//script"):
                     script.getparent().remove(script)
 
-            content = extract_text(content_nodes)
+            content = extract_text(content_nodes[0])
 
-            if not content:
-                logger.debug(
-                    'ignoring item from the result_xpath list: missing content of title "%s"',
-                    title,
-                )
-                continue
+            # Images that are NOT the favicon
+            xpath_image = eval_xpath_getindex(result, './/img', index=0, default=None)
 
-            thumbnail = content_nodes[0].xpath(".//img/@src")
-            if thumbnail:
-                thumbnail = thumbnail[0]
+            thumbnail = None
+            if xpath_image is not None:
+                thumbnail = xpath_image.get("src")
                 if thumbnail.startswith("data:image"):
-                    img_id = content_nodes[0].xpath(".//img/@id")
+                    img_id = xpath_image.get("id")
                     if img_id:
-                        thumbnail = data_image_map.get(img_id[0])
-            else:
-                thumbnail = None
+                        thumbnail = data_image_map.get(img_id)
 
-            results.append({"url": url, "title": title, "content": content, "thumbnail": thumbnail})
+            results.append({"url": url, "title": title, "content": content or '', "thumbnail": thumbnail})
 
         except Exception as e:  # pylint: disable=broad-except
             logger.error(e, exc_info=True)
