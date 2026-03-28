@@ -36,3 +36,11 @@ htmlcov/
 # Misc
 *.sqlite3
 *.db
+
+# Source maps (not needed in production)
+*.map
+
+# Large data files (optionally download separately)
+searxng_src/searx/data/osm_keys_tags.json
+searxng_src/searx/data/ahmia_blacklist.txt
+searxng_src/searx/data/external_bangs.json
