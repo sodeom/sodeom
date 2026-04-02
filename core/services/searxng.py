@@ -10,7 +10,23 @@ import time
 # Project root: three levels up from app/services/searxng.py
 _ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _SEARXNG_SETTINGS = os.path.join(_ROOT, "searxng_src", "settings_local.yml")
-_SEARXNG_PYTHON = os.path.join(_ROOT, ".venv", "bin", "python")
+
+
+def _find_venv_python():
+    """Find Python binary in .venv, checking current dir and parent dirs."""
+    current = _ROOT
+    for _ in range(5):  # Check up to 5 parent directories
+        venv_python = os.path.join(current, ".venv", "bin", "python")
+        if os.path.exists(venv_python):
+            return venv_python
+        parent = os.path.dirname(current)
+        if parent == current:  # Reached filesystem root
+            break
+        current = parent
+    return None
+
+
+_SEARXNG_PYTHON = _find_venv_python()
 
 _SEARXNG_PROC = None
 
@@ -34,9 +50,11 @@ def _start_searxng_blocking() -> None:
         _start_watchdog()
         return
 
-    if not os.path.exists(_SEARXNG_PYTHON):
-        print(f"[SearXNG] Python not found at {_SEARXNG_PYTHON} — skipping local start")
+    if not _SEARXNG_PYTHON or not os.path.exists(_SEARXNG_PYTHON):
+        print(f"[SearXNG] Python not found in .venv (searched from {_ROOT}) — skipping local start")
         return
+
+    print(f"[SearXNG] Using Python at: {_SEARXNG_PYTHON}")
 
     if not os.path.exists(_SEARXNG_SETTINGS):
         print(
