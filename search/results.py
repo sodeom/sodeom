@@ -12,11 +12,23 @@ import os
 import re
 import threading
 import time
+from urllib.parse import quote
 
 import requests
 from requests.adapters import HTTPAdapter
 
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Proxy configuration (for PythonAnywhere whitelist bypass)
+# ---------------------------------------------------------------------------
+_PROXY_WORKER_URL = os.getenv("PROXY_WORKER_URL", "").rstrip("/")
+_USE_PROXY = bool(_PROXY_WORKER_URL)
+
+if _USE_PROXY:
+    logger.info("[Proxy] Cloudflare Worker proxy enabled: %s", _PROXY_WORKER_URL)
+else:
+    logger.info("[Proxy] Direct requests (no proxy configured)")
 
 # ---------------------------------------------------------------------------
 # SearXNG instance configuration
@@ -154,15 +166,39 @@ def _get_instances():
 # ---------------------------------------------------------------------------
 
 
+def _proxy_url(url: str) -> str:
+    """Convert URL to proxied URL if proxy is configured."""
+    if not _USE_PROXY:
+        return url
+    return f"{_PROXY_WORKER_URL}?url={quote(url, safe='')}"
+
+
 def _fetch_instance(base_url: str, params: dict, timeout: int) -> "dict | None":
     """Fetch one SearXNG instance. Returns parsed dict or None on failure."""
     try:
-        resp = _session.get(
-            f"{base_url}/search",
-            params=params,
-            headers=HEADERS,
-            timeout=timeout,
-        )
+        # Build the search URL
+        search_url = f"{base_url}/search"
+        
+        # Use proxy if configured (except for localhost)
+        if _USE_PROXY and not base_url.startswith("http://localhost"):
+            # Proxy the entire URL with query parameters
+            from urllib.parse import urlencode
+            full_url = f"{search_url}?{urlencode(params)}"
+            proxied_url = _proxy_url(full_url)
+            resp = _session.get(
+                proxied_url,
+                headers=HEADERS,
+                timeout=timeout,
+            )
+        else:
+            # Direct request (localhost or no proxy)
+            resp = _session.get(
+                search_url,
+                params=params,
+                headers=HEADERS,
+                timeout=timeout,
+            )
+        
         resp.raise_for_status()
         data = resp.json()
         if isinstance(data, dict):

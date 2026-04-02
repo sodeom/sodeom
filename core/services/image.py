@@ -5,7 +5,7 @@ import ipaddress
 import logging
 import os
 import socket
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -13,6 +13,10 @@ from requests.adapters import HTTPAdapter
 logger = logging.getLogger(__name__)
 
 MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+# Proxy configuration
+_PROXY_WORKER_URL = os.getenv("PROXY_WORKER_URL", "").rstrip("/")
+_USE_PROXY = bool(_PROXY_WORKER_URL)
 
 _img_session = requests.Session()
 _img_session.mount("http://", HTTPAdapter(pool_connections=5, pool_maxsize=10))
@@ -25,6 +29,13 @@ _IMG_HEADERS = {
     ),
     "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
 }
+
+
+def _proxy_url(url: str) -> str:
+    """Convert URL to proxied URL if proxy is configured."""
+    if not _USE_PROXY:
+        return url
+    return f"{_PROXY_WORKER_URL}?url={quote(url, safe='')}"
 
 
 def is_safe_url(url: str) -> bool:
@@ -64,8 +75,11 @@ def install_image(url: str, base_dir: str = "placeholders") -> str | None:
         return filepath
 
     try:
+        # Use proxy if configured
+        fetch_url = _proxy_url(url)
+        
         response = _img_session.get(
-            url, stream=True, timeout=6, headers=_IMG_HEADERS, allow_redirects=False
+            fetch_url, stream=True, timeout=6, headers=_IMG_HEADERS, allow_redirects=False
         )
         response.raise_for_status()
         content_type = response.headers.get("Content-Type", "")
