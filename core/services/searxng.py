@@ -115,17 +115,14 @@ def _start_searxng_blocking() -> None:
 def start_searxng() -> None:
     """Kick off SearXNG startup in a background thread so it never blocks requests.
 
-    If SEARXNG_URL is explicitly set and healthy, the external/pre-started
-    instance is used directly. If it is set but unhealthy, fall back to the
-    vendored local subprocess so searches still return results.
+    Local SearXNG is preferred by default. Set SEARXNG_DISABLE_LOCAL_START=1
+    to skip spawning the local subprocess (for environments that only want
+    remote SearXNG instances).
     """
-    primary_instance = os.getenv("SEARXNG_URL", "").strip()
-    if primary_instance and _instance_healthy(primary_instance):
-        print("[SearXNG] SEARXNG_URL is set and healthy — skipping local subprocess start")
+    disable_local = os.getenv("SEARXNG_DISABLE_LOCAL_START", "").strip().lower()
+    if disable_local in ("1", "true", "yes", "on"):
+        print("[SearXNG] Local subprocess start disabled via SEARXNG_DISABLE_LOCAL_START")
         return
-
-    if primary_instance:
-        print("[SearXNG] SEARXNG_URL is set but unhealthy — starting local fallback")
 
     t = threading.Thread(
         target=_start_searxng_blocking, daemon=True, name="searxng-start"

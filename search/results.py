@@ -132,14 +132,14 @@ def _cache_set(key: str, data: dict) -> None:
 
 def _get_instances():
     """Return the SearXNG base URL to use.
-    Prefers SEARXNG_URL env var, then local instance, then public fallbacks.
+    Prefers local instance first, then SEARXNG_URL, then public fallbacks.
     """
     instances = []
 
+    instances.append(_LOCAL_INSTANCE)
+
     if _PRIMARY_INSTANCE:
         instances.append(_PRIMARY_INSTANCE)
-
-    instances.append(_LOCAL_INSTANCE)
 
     # Allow overriding fallback list via env var if needed.
     # Example: SEARXNG_FALLBACKS="https://a.example,https://b.example"

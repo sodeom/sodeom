@@ -258,22 +258,24 @@ class SodeomSmokeTest(unittest.TestCase):
 
 
 class SearxngServiceTest(unittest.TestCase):
-    def test_searxng_starts_when_remote_is_unhealthy(self) -> None:
+    def test_searxng_starts_by_default(self) -> None:
         from core.services import searxng as searxng_service
 
-        with patch.object(searxng_service, "_instance_healthy", return_value=False), patch.object(
-            searxng_service.threading, "Thread"
-        ) as thread_mock:
+        with patch.object(searxng_service.threading, "Thread") as thread_mock, patch.dict(
+            searxng_service.os.environ, {}, clear=False
+        ):
             searxng_service.start_searxng()
 
         thread_mock.assert_called_once()
 
-    def test_searxng_skips_when_remote_is_healthy(self) -> None:
+    def test_searxng_skips_when_disabled(self) -> None:
         from core.services import searxng as searxng_service
 
-        with patch.object(searxng_service, "_instance_healthy", return_value=True), patch.object(
-            searxng_service.threading, "Thread"
-        ) as thread_mock:
+        with patch.object(searxng_service.threading, "Thread") as thread_mock, patch.dict(
+            searxng_service.os.environ,
+            {"SEARXNG_DISABLE_LOCAL_START": "1"},
+            clear=False,
+        ):
             searxng_service.start_searxng()
 
         thread_mock.assert_not_called()
