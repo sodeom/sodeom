@@ -20,7 +20,7 @@ dist/
 
 # Flask
 instance/
-*.log
+*log
 
 # OS / editor
 .DS_Store
