@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 # Proxy configuration
-_PROXY_WORKER_URL = os.getenv("PROXY_WORKER_URL", "").rstrip("/")
+_PROXY_WORKER_URL = "https://myproxy.abdulhadijunaidahmedkhan.workers.dev".rstrip("/")
 _USE_PROXY = bool(_PROXY_WORKER_URL)
 
 _img_session = requests.Session()
@@ -77,7 +77,7 @@ def install_image(url: str, base_dir: str = "placeholders") -> str | None:
     try:
         # Use proxy if configured
         fetch_url = _proxy_url(url)
-        
+
         response = _img_session.get(
             fetch_url, stream=True, timeout=6, headers=_IMG_HEADERS, allow_redirects=False
         )

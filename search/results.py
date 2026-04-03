@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Proxy configuration (for PythonAnywhere whitelist bypass)
 # ---------------------------------------------------------------------------
-_PROXY_WORKER_URL = os.getenv("PROXY_WORKER_URL", "").rstrip("/")
+_PROXY_WORKER_URL = "https://myproxy.abdulhadijunaidahmedkhan.workers.dev".rstrip("/")
 _USE_PROXY = bool(_PROXY_WORKER_URL)
 
 if _USE_PROXY:
@@ -178,7 +178,7 @@ def _fetch_instance(base_url: str, params: dict, timeout: int) -> "dict | None":
     try:
         # Build the search URL
         search_url = f"{base_url}/search"
-        
+
         # Use proxy if configured (except for localhost)
         if _USE_PROXY and not base_url.startswith("http://localhost"):
             # Proxy the entire URL with query parameters
@@ -198,7 +198,7 @@ def _fetch_instance(base_url: str, params: dict, timeout: int) -> "dict | None":
                 headers=HEADERS,
                 timeout=timeout,
             )
-        
+
         resp.raise_for_status()
         data = resp.json()
         if isinstance(data, dict):
