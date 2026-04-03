@@ -8,6 +8,8 @@ import threading
 import time
 import sys
 
+import requests
+
 # Project root: three levels up from app/services/searxng.py
 _ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 _SEARXNG_SETTINGS = os.path.join(_ROOT, "searxng_src", "settings_local.yml")
@@ -46,6 +48,19 @@ def _port_open(host: str, port: int, timeout: float = 1.0) -> bool:
         with socket.create_connection((host, port), timeout=timeout):
             return True
     except OSError:
+        return False
+
+
+def _instance_healthy(base_url: str, timeout: float = 1.0) -> bool:
+    """Return True when a SearXNG instance responds to a lightweight health check."""
+    base_url = base_url.rstrip("/")
+    if not base_url:
+        return False
+
+    try:
+        resp = requests.get(f"{base_url}/healthz", timeout=timeout)
+        return resp.status_code in (200, 404)
+    except requests.RequestException:
         return False
 
 
@@ -100,13 +115,17 @@ def _start_searxng_blocking() -> None:
 def start_searxng() -> None:
     """Kick off SearXNG startup in a background thread so it never blocks requests.
 
-    Skipped entirely when SEARXNG_URL is explicitly set — in that case the
-    external/pre-started instance is used directly and there is no need (or
-    safety) to spawn a local subprocess from inside a forked WSGI worker.
+    If SEARXNG_URL is explicitly set and healthy, the external/pre-started
+    instance is used directly. If it is set but unhealthy, fall back to the
+    vendored local subprocess so searches still return results.
     """
-    if os.getenv("SEARXNG_URL", "").strip():
-        print("[SearXNG] SEARXNG_URL is set — skipping local subprocess start")
+    primary_instance = os.getenv("SEARXNG_URL", "").strip()
+    if primary_instance and _instance_healthy(primary_instance):
+        print("[SearXNG] SEARXNG_URL is set and healthy — skipping local subprocess start")
         return
+
+    if primary_instance:
+        print("[SearXNG] SEARXNG_URL is set but unhealthy — starting local fallback")
 
     t = threading.Thread(
         target=_start_searxng_blocking, daemon=True, name="searxng-start"

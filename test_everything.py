@@ -257,5 +257,27 @@ class SodeomSmokeTest(unittest.TestCase):
         self.assertEqual(result["number_of_results"], 1)
 
 
+class SearxngServiceTest(unittest.TestCase):
+    def test_searxng_starts_when_remote_is_unhealthy(self) -> None:
+        from core.services import searxng as searxng_service
+
+        with patch.object(searxng_service, "_instance_healthy", return_value=False), patch.object(
+            searxng_service.threading, "Thread"
+        ) as thread_mock:
+            searxng_service.start_searxng()
+
+        thread_mock.assert_called_once()
+
+    def test_searxng_skips_when_remote_is_healthy(self) -> None:
+        from core.services import searxng as searxng_service
+
+        with patch.object(searxng_service, "_instance_healthy", return_value=True), patch.object(
+            searxng_service.threading, "Thread"
+        ) as thread_mock:
+            searxng_service.start_searxng()
+
+        thread_mock.assert_not_called()
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
