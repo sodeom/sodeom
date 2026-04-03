@@ -281,5 +281,151 @@ class SearxngServiceTest(unittest.TestCase):
         thread_mock.assert_not_called()
 
 
+class RealSearchTests(unittest.TestCase):
+    """Integration tests that show actual search results from local SearXNG."""
+    
+    @classmethod
+    def setUpClass(cls) -> None:
+        # Don't patch start_searxng so local instance actually runs
+        cls.app = create_app()
+        cls.client = cls.app.test_client()
+
+    def test_real_search_web(self) -> None:
+        """Perform actual web search and display results."""
+        print("\n" + "="*80)
+        print("REAL WEB SEARCH TEST: 'Python'")
+        print("="*80)
+        response = self.client.get("/api/search?q=Python")
+        print(f"Status Code: {response.status_code}")
+        
+        payload = response.get_json()
+        print(f"\nQuery: {payload.get('query')}")
+        print(f"Total Results: {payload.get('number_of_results', 0)}")
+        print(f"Number of Results Returned: {len(payload.get('results', []))}")
+        print(f"Suggestions: {payload.get('suggestions', [])}")
+        print(f"Corrections: {payload.get('corrections', [])}")
+        
+        if payload.get('results'):
+            print("\nTOP 5 RESULTS:")
+            for i, result in enumerate(payload['results'][:5], 1):
+                print(f"\n  {i}. {result.get('title', 'N/A')}")
+                print(f"     Link: {result.get('link', 'N/A')[:80]}")
+                print(f"     Description: {result.get('description', 'N/A')[:100]}...")
+                print(f"     Engine: {result.get('engine', 'N/A')}")
+        else:
+            print("\n⚠️  NO RESULTS RETURNED")
+        
+        print("\n")
+        self.assertEqual(response.status_code, 200)
+
+    def test_real_search_different_query(self) -> None:
+        """Perform actual web search with different query and display results."""
+        print("\n" + "="*80)
+        print("REAL WEB SEARCH TEST: 'Flask web framework'")
+        print("="*80)
+        response = self.client.get("/api/search?q=Flask+web+framework")
+        print(f"Status Code: {response.status_code}")
+        
+        payload = response.get_json()
+        print(f"\nQuery: {payload.get('query')}")
+        print(f"Total Results: {payload.get('number_of_results', 0)}")
+        print(f"Number of Results Returned: {len(payload.get('results', []))}")
+        
+        if payload.get('results'):
+            print("\nTOP 3 RESULTS:")
+            for i, result in enumerate(payload['results'][:3], 1):
+                print(f"\n  {i}. {result.get('title', 'N/A')}")
+                print(f"     Link: {result.get('link', 'N/A')[:80]}")
+                print(f"     Engine: {result.get('engine', 'N/A')}")
+        else:
+            print("\n⚠️  NO RESULTS RETURNED")
+        
+        print("\n")
+        self.assertEqual(response.status_code, 200)
+
+    def test_real_search_images(self) -> None:
+        """Perform actual image search and display results."""
+        print("\n" + "="*80)
+        print("REAL IMAGE SEARCH TEST: 'mountain landscape'")
+        print("="*80)
+        response = self.client.get("/api/search?q=mountain+landscape&category=images")
+        print(f"Status Code: {response.status_code}")
+        
+        payload = response.get_json()
+        print(f"\nQuery: {payload.get('query')}")
+        print(f"Category: {payload.get('category')}")
+        print(f"Total Results: {payload.get('number_of_results', 0)}")
+        print(f"Number of Results Returned: {len(payload.get('results', []))}")
+        
+        if payload.get('results'):
+            print("\nTOP 5 IMAGE RESULTS:")
+            for i, result in enumerate(payload['results'][:5], 1):
+                print(f"\n  {i}. {result.get('title', 'N/A')}")
+                print(f"     URL: {result.get('url', 'N/A')[:80]}...")
+        else:
+            print("\n⚠️  NO IMAGE RESULTS RETURNED")
+        
+        print("\n")
+        self.assertEqual(response.status_code, 200)
+
+    def test_real_search_news(self) -> None:
+        """Perform actual news search and display results."""
+        print("\n" + "="*80)
+        print("REAL NEWS SEARCH TEST: 'technology'")
+        print("="*80)
+        response = self.client.get("/api/search?q=technology&category=news")
+        print(f"Status Code: {response.status_code}")
+        
+        payload = response.get_json()
+        print(f"\nQuery: {payload.get('query')}")
+        print(f"Category: {payload.get('category')}")
+        print(f"Total Results: {payload.get('number_of_results', 0)}")
+        print(f"Number of Results Returned: {len(payload.get('results', []))}")
+        
+        if payload.get('results'):
+            print("\nTOP 3 NEWS RESULTS:")
+            for i, result in enumerate(payload['results'][:3], 1):
+                print(f"\n  {i}. {result.get('title', 'N/A')}")
+                print(f"     URL: {result.get('url', 'N/A')[:80]}")
+                print(f"     Engine: {result.get('engine', 'N/A')}")
+        else:
+            print("\n⚠️  NO NEWS RESULTS RETURNED")
+        
+        print("\n")
+        self.assertEqual(response.status_code, 200)
+
+    def test_searxng_health(self) -> None:
+        """Check if local SearXNG instance is running and responding."""
+        print("\n" + "="*80)
+        print("SEARXNG HEALTH CHECK")
+        print("="*80)
+        import socket
+        import requests
+        
+        # Check if port 8888 is open
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex(('127.0.0.1', 8888))
+        sock.close()
+        
+        if result == 0:
+            print("✓ SearXNG port 8888 is OPEN")
+        else:
+            print("✗ SearXNG port 8888 is CLOSED/NOT RESPONDING")
+        
+        # Try to hit the SearXNG API directly
+        try:
+            response = requests.get("http://localhost:8888/search?q=test&format=json", timeout=5)
+            print(f"✓ SearXNG API responding (HTTP {response.status_code})")
+            data = response.json()
+            print(f"  - Results returned: {len(data.get('results', []))}")
+            print(f"  - Response keys: {list(data.keys())}")
+        except requests.exceptions.ConnectionError:
+            print("✗ SearXNG API not responding (Connection Error)")
+        except Exception as e:
+            print(f"✗ SearXNG API error: {e}")
+        
+        print("\n")
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
