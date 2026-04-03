@@ -288,25 +288,69 @@ class RealSearchTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         import time
         import requests
-        
-        # Don't patch start_searxng so local instance actually runs
+        import socket
+        import subprocess
+
+        # Kill any stale SearXNG processes first
+        print("\n[Test Setup] Cleaning up any stale SearXNG processes...")
+        try:
+            subprocess.run(
+                ["pkill", "-f", "searxng|searx"],
+                capture_output=True,
+                timeout=2
+            )
+            time.sleep(1)  # Give processes time to die
+            print("[Test Setup] ✓ Cleaned up any stale processes")
+        except Exception as e:
+            print(f"[Test Setup] Note: pkill result: {e}")
+
+        # Wait for port to be free
+        print("[Test Setup] Waiting for port 8888 to be free...")
+        for attempt in range(10):
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex(('127.0.0.1', 8888))
+            sock.close()
+            if result != 0:  # Port is free
+                print(f"[Test Setup] ✓ Port 8888 is free")
+                break
+            else:
+                if attempt == 0:
+                    print(f"[Test Setup] Port 8888 still in use, waiting...")
+                time.sleep(0.5)
+
+        # Now create the app which will start a fresh SearXNG instance
+        print("[Test Setup] Creating Flask app and starting SearXNG...")
         cls.app = create_app()
         cls.client = cls.app.test_client()
-        
-        # Wait for SearXNG to be fully ready (not just port open, but HTTP responding)
-        print("\n[Test Setup] Waiting for SearXNG HTTP API to be ready...")
-        max_attempts = 20
+
+        # Wait for SearXNG HTTP API to be ready
+        print("[Test Setup] Waiting for SearXNG HTTP API to respond...")
+        max_attempts = 40  # Increased for robustness
         for attempt in range(max_attempts):
             try:
-                resp = requests.get("http://localhost:8888/search?q=test&format=json", timeout=2)
+                resp = requests.get(
+                    "http://localhost:8888/search?q=test&format=json",
+                    timeout=2  # Increased timeout to 2s
+                )
                 if resp.status_code == 200:
-                    print(f"[Test Setup] ✓ SearXNG ready on attempt {attempt + 1}")
+                    print(f"[Test Setup] ✓ SearXNG API ready on attempt {attempt + 1}/{max_attempts}")
                     return
-            except Exception:
-                pass
+                else:
+                    if attempt == 0:
+                        print(f"[Test Setup] Got HTTP {resp.status_code}, retrying...")
+            except requests.exceptions.Timeout:
+                if attempt == 0:
+                    print(f"[Test Setup] First attempts timing out (normal while starting)...")
+            except requests.exceptions.ConnectionError:
+                pass  # Silent retry
+            except Exception as e:
+                if attempt == 0:
+                    print(f"[Test Setup] Exception: {type(e).__name__}")
+
             if attempt < max_attempts - 1:
-                time.sleep(0.5)
-        print("[Test Setup] ⚠️  Warning: SearXNG may not be fully ready, tests may see empty results")
+                time.sleep(0.3)
+        
+        print(f"[Test Setup] ⚠️  Warning: SearXNG did not respond after {max_attempts} attempts, retrying with search..")
 
     def test_real_search_web(self) -> None:
         """Perform actual web search and display results."""
@@ -436,9 +480,9 @@ class RealSearchTests(unittest.TestCase):
         # Try to hit the SearXNG API directly with retries
         print("\nTrying to connect to SearXNG HTTP API...")
         success = False
-        for attempt in range(5):
+        for attempt in range(8):
             try:
-                response = requests.get("http://localhost:8888/search?q=test&format=json", timeout=3)
+                response = requests.get("http://localhost:8888/search?q=test&format=json", timeout=2)
                 if response.status_code == 200:
                     print(f"✓ SearXNG API responding (HTTP {response.status_code}) on attempt {attempt + 1}")
                     data = response.json()
@@ -448,21 +492,26 @@ class RealSearchTests(unittest.TestCase):
                     break
                 else:
                     print(f"⚠️  Unexpected HTTP status: {response.status_code}")
-            except requests.exceptions.ConnectionError as e:
-                if attempt < 4:
-                    print(f"  Attempt {attempt + 1}/5 failed, retrying in 0.5s...")
-                    time.sleep(0.5)
+            except requests.exceptions.Timeout:
+                if attempt < 7:
+                    print(f"  Attempt {attempt + 1}/8 timed out, retrying...")
+                    time.sleep(0.3)
                 else:
-                    print(f"✗ SearXNG API not responding after {attempt + 1} attempts (Connection Error)")
-                    print(f"  Error: {e}")
+                    print(f"✗ SearXNG API timed out after {attempt + 1} attempts")
+            except requests.exceptions.ConnectionError:
+                if attempt < 7:
+                    print(f"  Attempt {attempt + 1}/8 connection error, retrying...")
+                    time.sleep(0.3)
+                else:
+                    print(f"✗ SearXNG API connection error after {attempt + 1} attempts")
             except Exception as e:
-                print(f"✗ SearXNG API error on attempt {attempt + 1}: {e}")
+                print(f"✗ SearXNG API error: {e}")
                 break
 
         if success:
             print("  → SearXNG is HEALTHY")
         else:
-            print("  → SearXNG may still be starting, real search tests may return empty results")
+            print("  → SearXNG is not responding (but app may use fallbacks)")
 
         print("\n")
 
