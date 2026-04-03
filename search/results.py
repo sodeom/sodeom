@@ -3,12 +3,11 @@ SearXNG-powered search backend for Sodeom.
 
 Queries a SearXNG instance's JSON API to get web results, images, videos,
 spell corrections, suggestions, infoboxes (wiki panels), and instant answers.
-Falls back across multiple public SearXNG instances if one is down.
+Uses only the local SearXNG instance.
 """
 
 import json
 import logging
-import os
 import re
 import threading
 import time
@@ -35,13 +34,6 @@ else:
 # ---------------------------------------------------------------------------
 # Local SearXNG instance (started as subprocess by app.py)
 _LOCAL_INSTANCE = "http://localhost:8888"
-
-# Prefer a self-hosted instance via env var; fall back to local, then public.
-_PRIMARY_INSTANCE = os.getenv("SEARXNG_URL", "").rstrip("/")
-_PUBLIC_FALLBACKS = [
-    "https://searx.be",
-    "https://search.sapti.me",
-]
 
 HEADERS = {
     "User-Agent": (
@@ -132,33 +124,9 @@ def _cache_set(key: str, data: dict) -> None:
 
 def _get_instances():
     """Return the SearXNG base URL to use.
-    Prefers local instance first, then SEARXNG_URL, then public fallbacks.
+    Local-only mode: always use localhost SearXNG.
     """
-    instances = []
-
-    instances.append(_LOCAL_INSTANCE)
-
-    if _PRIMARY_INSTANCE:
-        instances.append(_PRIMARY_INSTANCE)
-
-    # Allow overriding fallback list via env var if needed.
-    # Example: SEARXNG_FALLBACKS="https://a.example,https://b.example"
-    custom_fallbacks = os.getenv("SEARXNG_FALLBACKS", "").strip()
-    if custom_fallbacks:
-        instances.extend(
-            [u.strip().rstrip("/") for u in custom_fallbacks.split(",") if u.strip()]
-        )
-    else:
-        instances.extend(_PUBLIC_FALLBACKS)
-
-    # Deduplicate while preserving order.
-    seen = set()
-    ordered = []
-    for instance in instances:
-        if instance not in seen:
-            seen.add(instance)
-            ordered.append(instance)
-    return ordered
+    return [_LOCAL_INSTANCE]
 
 
 # ---------------------------------------------------------------------------
@@ -216,8 +184,7 @@ _MAX_RETRIES = 2  # one retry after a short pause
 def _query_searxng(params: dict, timeout: int = 8) -> "dict | None":
     """
     Query SearXNG instances with automatic retry.
-    Tries instances in priority order (primary -> local -> fallbacks), and
-    retries each instance up to _MAX_RETRIES times before moving on.
+    Local-only mode retries the localhost instance up to _MAX_RETRIES times.
     Only responses with actual results are cached.
     """
     params = {**params, "format": "json"}
