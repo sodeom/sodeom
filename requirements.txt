@@ -8,3 +8,4 @@ openai
 httpx
 selectolax
 beautifulsoup4
+-r searxng_src/requirements.txt
