@@ -61,7 +61,7 @@ engines:
   - name: duckduckgo
     engine: duckduckgo
     shortcut: ddg
-    disabled: false
+    disabled: true
 
   - name: brave
     engine: brave
