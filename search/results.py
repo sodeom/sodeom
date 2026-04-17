@@ -171,17 +171,27 @@ def _search_direct_via_proxy(query: str) -> "dict | None":
                 continue
             seen_urls.add(href)
             
-            # Get title from URL domain
-            from urllib.parse import urlparse
-            domain = urlparse(href).netloc
-            if domain.startswith("www."):
-                domain = domain[4:]
-            title = domain if domain else href[:30]
+            # Get title from link text (clean it)
+            title = link_elem.get_text(strip=True)
+            # If title is too long or contains site name, use domain
+            if not title or len(title) > 80:
+                from urllib.parse import urlparse
+                domain = urlparse(href).netloc
+                if domain.startswith("www."):
+                    domain = domain[4:]
+                title = domain if domain else href[:30]
+            
+            # Get description from text in snippet
+            desc = ""
+            for child in snippet.descendants:
+                if child.name == "p":
+                    desc = child.get_text(strip=True)
+                    break
             
             results.append({
                 "title": title[:100],
                 "url": href,
-                "content": "",
+                "content": desc[:200] if desc else "",
                 "engine": "brave",
             })
         
