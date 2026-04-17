@@ -46,7 +46,10 @@ outgoing:
   pool_connections: 100
   pool_maxsize: 20
   enable_http2: true
-  # No proxy - direct connections
+  # Use local proxy that forwards to Cloudflare Worker
+  proxies:
+    all://:
+      - http://127.0.0.1:8081/
   using_tor_proxy: false
   extra_proxy_timeout: 5
 

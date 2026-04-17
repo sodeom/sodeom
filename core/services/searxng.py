@@ -64,11 +64,44 @@ def _instance_healthy(base_url: str, timeout: float = 1.0) -> bool:
         return False
 
 
+_PROXY_PROC = None
+
+def _start_proxy_blocking():
+    """Start the proxy server that forwards to Cloudflare Worker."""
+    global _PROXY_PROC
+    import sys
+    
+    if _port_open("127.0.0.1", 8081, timeout=0.3):
+        print("[Proxy] Already running on port 8081")
+        return
+    
+    try:
+        _PROXY_PROC = subprocess.Popen(
+            [_SEARXNG_PYTHON, "proxy_simple.py", "--port", "8081"],
+            cwd=_ROOT,
+            stdout=open("/tmp/proxy.log", "a"),
+            stderr=subprocess.STDOUT,
+        )
+        print(f"[Proxy] Started with PID {_PROXY_PROC.pid}")
+        
+        for i in range(15):
+            time.sleep(1)
+            if _port_open("127.0.0.1", 8081, timeout=0.3):
+                print(f"[Proxy] Ready after {i + 1}s")
+                return
+        print("[Proxy] Warning: proxy did not start within 15s")
+    except Exception as e:
+        print(f"[Proxy] Failed to start: {e}")
+
 def _start_searxng_blocking() -> None:
     """Internal: start SearXNG subprocess and wait for it to be ready.
     Runs in a background thread so app startup is never blocked."""
     global _SEARXNG_PROC
 
+    # Start proxy first
+    _start_proxy_blocking()
+    time.sleep(2)
+    
     if _port_open("127.0.0.1", 8888, timeout=0.3):
         print("[SearXNG] Already running on port 8888")
         _start_watchdog()
