@@ -46,11 +46,14 @@ outgoing:
   pool_connections: 100
   pool_maxsize: 20
   enable_http2: true
+  # No proxy - direct connections
+  using_tor_proxy: false
+  extra_proxy_timeout: 5
 
 engines:
-  - name: google
-    engine: google
-    shortcut: g
+  - name: brave
+    engine: brave
+    shortcut: br
     disabled: false
 
   - name: bing
@@ -61,7 +64,7 @@ engines:
   - name: duckduckgo
     engine: duckduckgo
     shortcut: ddg
-    disabled: true
+    disabled: false
 
   - name: brave
     engine: brave

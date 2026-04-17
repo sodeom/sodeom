@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 # Proxy configuration
-_PROXY_WORKER_URL = "https://myproxy.abdulhadijunaidahmedkhan.workers.dev".rstrip("/")
+import os
+_PROXY_WORKER_URL = os.getenv("PROXY_WORKER_URL", "https://myproxy.abdulhadijunaidahmedkhan.workers.dev").rstrip("/")
 _USE_PROXY = bool(_PROXY_WORKER_URL)
 
 _img_session = requests.Session()
@@ -29,6 +30,8 @@ _IMG_HEADERS = {
     ),
     "Accept": "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
 }
+
+
 
 
 def _proxy_url(url: str) -> str:

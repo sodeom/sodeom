@@ -21,7 +21,8 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Proxy configuration (for PythonAnywhere whitelist bypass)
 # ---------------------------------------------------------------------------
-_PROXY_WORKER_URL = "https://myproxy.abdulhadijunaidahmedkhan.workers.dev".rstrip("/")
+import os
+_PROXY_WORKER_URL = os.getenv("PROXY_WORKER_URL", "https://myproxy.abdulhadijunaidahmedkhan.workers.dev").rstrip("/")
 _USE_PROXY = bool(_PROXY_WORKER_URL)
 
 if _USE_PROXY:
