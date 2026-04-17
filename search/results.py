@@ -135,10 +135,61 @@ def _get_instances():
     """Return SearXNG instances to try.
     Tries local first, then external via proxy if configured.
     """
-    instances = [_LOCAL_INSTANCE]
-    if _EXTERNAL_INSTANCE and _USE_PROXY:
-        instances.append(_EXTERNAL_INSTANCE)
-    return instances
+    return [_LOCAL_INSTANCE]
+
+
+def _search_direct_via_proxy(query: str) -> "dict | None":
+    """Fallback: search directly via proxy using Brave."""
+    if not _USE_PROXY:
+        return None
+    try:
+        import requests
+        from urllib.parse import quote
+        # Use Brave through proxy
+        url = f"https://search.brave.com/search?q={quote(query, safe='')}"
+        proxied = f"{_PROXY_WORKER_URL}/?url={quote(url, safe='')}"
+        resp = requests.get(proxied, timeout=25, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        })
+        if resp.status_code != 200:
+            return None
+
+        # Parse Brave HTML results
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(resp.text, "html.parser")
+        results = []
+        seen_urls = set()
+        
+        # Brave uses .snippet class
+        for snippet in soup.select(".snippet")[:15]:
+            link_elem = snippet.select_one("a[href^='http']")
+            if not link_elem:
+                continue
+            
+            href = link_elem.get("href", "")
+            if not href or href in seen_urls:
+                continue
+            seen_urls.add(href)
+            
+            # Get title from URL domain
+            from urllib.parse import urlparse
+            domain = urlparse(href).netloc
+            if domain.startswith("www."):
+                domain = domain[4:]
+            title = domain if domain else href[:30]
+            
+            results.append({
+                "title": title[:100],
+                "url": href,
+                "content": "",
+                "engine": "brave",
+            })
+        
+        if results:
+            return {"results": results, "answers": [], "suggestions": [], "infoboxes": []}
+    except Exception as e:
+        logger.debug("[Direct] Fallback failed: %s", e)
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -234,6 +285,15 @@ def _query_searxng(params: dict, timeout: int = 8) -> "dict | None":
         if instance == _LOCAL_INSTANCE and _EXTERNAL_INSTANCE:
             logger.debug("[SearXNG] Local empty, trying external...")
             continue
+
+    # If no results, try direct search via proxy
+    if not last or not last.get("results"):
+        query = params.get("q", "")
+        logger.debug("[SearXNG] Trying direct search for: %s", query)
+        direct = _search_direct_via_proxy(query)
+        if direct and direct.get("results"):
+            _cache_set(cache_key, direct)
+            return direct
 
     # Return empty-but-structured response rather than None so callers can
     # distinguish "SearXNG reachable but no results" from "SearXNG down".
