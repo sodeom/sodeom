@@ -71,13 +71,13 @@ def _start_proxy_blocking():
     global _PROXY_PROC
     import sys
     
-    if _port_open("127.0.0.1", 8081, timeout=0.3):
-        print("[Proxy] Already running on port 8081")
+    if _port_open("127.0.0.1", 8080, timeout=0.3):
+        print("[Proxy] Already running on port 8080")
         return
     
     try:
         _PROXY_PROC = subprocess.Popen(
-            [_SEARXNG_PYTHON, "proxy_simple.py", "--port", "8081"],
+            [_SEARXNG_PYTHON, "proxy_simple.py", "--port", "8080"],
             cwd=_ROOT,
             stdout=open("/tmp/proxy.log", "a"),
             stderr=subprocess.STDOUT,
@@ -86,7 +86,7 @@ def _start_proxy_blocking():
         
         for i in range(15):
             time.sleep(1)
-            if _port_open("127.0.0.1", 8081, timeout=0.3):
+            if _port_open("127.0.0.1", 8080, timeout=0.3):
                 print(f"[Proxy] Ready after {i + 1}s")
                 return
         print("[Proxy] Warning: proxy did not start within 15s")

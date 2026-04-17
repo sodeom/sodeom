@@ -34,6 +34,8 @@ class ProxyHandler(BaseHTTPRequestHandler):
 
     def _proxy_request(self):
         # Determine target URL
+        print(f"[Proxy] Request: {self.command} {self.path}")
+        
         # For absolute URL in path (SearXNG uses http://...)
         if self.path.startswith('http://') or self.path.startswith('https://'):
             target = self.path

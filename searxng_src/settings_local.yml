@@ -49,7 +49,7 @@ outgoing:
   # Use local proxy that forwards to Cloudflare Worker
   proxies:
     all://:
-      - http://127.0.0.1:8081/
+      - http://127.0.0.1:8080/
   using_tor_proxy: false
   extra_proxy_timeout: 5
 
