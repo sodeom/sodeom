@@ -202,6 +202,69 @@ def _search_direct_via_proxy(query: str) -> "dict | None":
     return None
 
 
+def _search_images_direct(query: str) -> "dict | None":
+    """Fallback: search images directly via proxy using Bing Images."""
+    if not _USE_PROXY:
+        return None
+    try:
+        import requests
+        from urllib.parse import quote
+        # Use Bing Images through proxy
+        url = f"https://www.bing.com/images/search?q={quote(query, safe='')}"
+        proxied = f"{_PROXY_WORKER_URL}/?url={quote(url, safe='')}"
+        resp = requests.get(proxied, timeout=25, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        })
+        if resp.status_code != 200:
+            return None
+
+        # Parse Bing Images HTML
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(resp.text, "html.parser")
+        results = []
+        seen = set()
+        
+        for item in soup.select(".iusc")[:20]:
+            # Get m attribute which contains URL info
+            m = item.get("m", "")
+            if not m:
+                continue
+            
+            import json
+            try:
+                data = json.loads(m)
+            except:
+                continue
+            
+            # Get image URLs
+            purl = data.get("purl", "")  # page URL  
+            img_url = data.get("turl", "") or data.get("iurl", "")  # image URL
+            
+            if not img_url or img_url in seen:
+                continue
+            seen.add(img_url)
+            
+            # Get title from page URL
+            title = purl.split("/")[-1] if purl else query
+            # Clean title
+            title = title.replace("-", " ").replace("_", " ").title()[:50]
+            
+            results.append({
+                "title": title,
+                "url": purl,  # link to page
+                "img_src": img_url,  # full image
+                "thumbnail": img_url,  # use same for thumb
+                "source": "bing",
+                "engine": "bing_images",
+            })
+        
+        if results:
+            return {"results": results, "answers": [], "suggestions": [], "infoboxes": []}
+    except Exception as e:
+        logger.debug("[Direct Images] Fallback failed: %s", e)
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Low-level query helpers
 # ---------------------------------------------------------------------------
@@ -395,6 +458,10 @@ def search_images(query: str, page: int = 1, language: str = "en") -> dict:
         "language": language,
     }
     data = _query_searxng(params, timeout=8)
+
+    # If no results, try direct image search fallback
+    if data is None or not data.get("results"):
+        data = _search_images_direct(query)
 
     if data is None:
         return _empty_response(query, page)
