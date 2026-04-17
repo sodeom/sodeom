@@ -214,17 +214,26 @@ def _query_searxng(params: dict, timeout: int = 8) -> "dict | None":
         return cached
 
     last: "dict | None" = None
+    last_instance = None
     for instance in _get_instances():
+        logger.debug("[SearXNG] Trying instance: %s", instance)
         for attempt in range(_MAX_RETRIES):
             data = _fetch_instance(instance, params, timeout=timeout)
+            # If we got results, cache and return
             if data is not None and data.get("results"):
                 _cache_set(cache_key, data)
                 return data
+            # Track last valid response
             if data is not None:
-                last = data  # keep as fallback (has structure, just empty results)
+                last = data
+                last_instance = instance
             if attempt < _MAX_RETRIES - 1:
-                # Small pause — the engine may have hit a transient timeout.
                 time.sleep(_RETRY_DELAY)
+
+        # If local failed/empty and we have external, continue to next
+        if instance == _LOCAL_INSTANCE and _EXTERNAL_INSTANCE:
+            logger.debug("[SearXNG] Local empty, trying external...")
+            continue
 
     # Return empty-but-structured response rather than None so callers can
     # distinguish "SearXNG reachable but no results" from "SearXNG down".
