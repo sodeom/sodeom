@@ -22,7 +22,10 @@ logger = logging.getLogger(__name__)
 # Proxy configuration (for PythonAnywhere whitelist bypass)
 # ---------------------------------------------------------------------------
 import os
-_PROXY_WORKER_URL = os.getenv("PROXY_WORKER_URL", "https://myproxy.abdulhadijunaidahmedkhan.workers.dev").rstrip("/")
+
+_PROXY_WORKER_URL = os.getenv(
+    "PROXY_WORKER_URL", "https://myproxy.abdulhadijunaidahmedkhan.workers.dev"
+).rstrip("/")
 _USE_PROXY = bool(_PROXY_WORKER_URL)
 
 if _USE_PROXY:
@@ -35,6 +38,11 @@ else:
 # ---------------------------------------------------------------------------
 # Local SearXNG instance (started as subprocess by app.py)
 _LOCAL_INSTANCE = "http://localhost:8888"
+
+# External fallback (used when local fails or for remote access)
+_EXTERNAL_INSTANCE = os.getenv("SEARXNG_URL", "").strip()
+if _EXTERNAL_INSTANCE:
+    _EXTERNAL_INSTANCE = _EXTERNAL_INSTANCE.rstrip("/")
 
 HEADERS = {
     "User-Agent": (
@@ -124,10 +132,13 @@ def _cache_set(key: str, data: dict) -> None:
 
 
 def _get_instances():
-    """Return the SearXNG base URL to use.
-    Local-only mode: always use localhost SearXNG.
+    """Return SearXNG instances to try.
+    Tries local first, then external via proxy if configured.
     """
-    return [_LOCAL_INSTANCE]
+    instances = [_LOCAL_INSTANCE]
+    if _EXTERNAL_INSTANCE and _USE_PROXY:
+        instances.append(_EXTERNAL_INSTANCE)
+    return instances
 
 
 # ---------------------------------------------------------------------------
@@ -152,6 +163,7 @@ def _fetch_instance(base_url: str, params: dict, timeout: int) -> "dict | None":
         if _USE_PROXY and not base_url.startswith("http://localhost"):
             # Proxy the entire URL with query parameters
             from urllib.parse import urlencode
+
             full_url = f"{search_url}?{urlencode(params)}"
             proxied_url = _proxy_url(full_url)
             resp = _session.get(
