@@ -14,10 +14,12 @@ logger = logging.getLogger(__name__)
 
 MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 
-# Proxy configuration
+# # Proxy configuration
 import os
 _PROXY_WORKER_URL = os.getenv("PROXY_WORKER_URL", "https://myproxy.abdulhadijunaidahmedkhan.workers.dev").rstrip("/")
 _USE_PROXY = bool(_PROXY_WORKER_URL)
+# Bypass proxy for binary content (images don't work through Cloudflare Worker)
+_SKIP_PROXY_FOR_IMAGES = True
 
 _img_session = requests.Session()
 _img_session.mount("http://", HTTPAdapter(pool_connections=5, pool_maxsize=10))
@@ -78,8 +80,11 @@ def install_image(url: str, base_dir: str = "placeholders") -> str | None:
         return filepath
 
     try:
-        # Use proxy if configured
-        fetch_url = _proxy_url(url)
+        # Skip proxy for images (Cloudflare Worker blocks binary content)
+        if _SKIP_PROXY_FOR_IMAGES:
+            fetch_url = url
+        else:
+            fetch_url = _proxy_url(url)
 
         response = _img_session.get(
             fetch_url, stream=True, timeout=6, headers=_IMG_HEADERS, allow_redirects=False
