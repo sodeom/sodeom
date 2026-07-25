@@ -68,7 +68,7 @@ def index():
     has_prev = page > 1
 
     return render_template(
-        "index.html",
+        "search/index.html",
         results=results,
         query=q,
         query_error=query_error,
@@ -142,7 +142,7 @@ def wiki(query):
         suggestions = []
 
     return render_template(
-        "wiki.html",
+        "search/wiki.html",
         query=query,
         infoboxes=infoboxes,
         answers=answers,
@@ -255,7 +255,7 @@ def images():
             imgs = []
 
     return render_template(
-        "images.html",
+        "search/images.html",
         images=imgs,
         query=q,
         page=page,
@@ -291,7 +291,7 @@ def videos():
             vids = []
 
     return render_template(
-        "videos.html",
+        "search/videos.html",
         videos=vids,
         query=q,
         page=page,
@@ -327,7 +327,7 @@ def news():
             articles = []
 
     return render_template(
-        "news.html",
+        "search/news.html",
         articles=articles,
         query=q,
         page=page,
@@ -343,7 +343,7 @@ def news():
 def placeholder():
     q = request.args.get("q", "")
     if not q:
-        return render_template("placeholder.html")
+        return render_template("search/placeholder.html")
 
     fallback = os.path.join(current_app.static_folder, "not-found.png")
 
@@ -368,7 +368,7 @@ def placeholder():
 def placeholder_url():
     q = request.args.get("q", "")
     if not q:
-        return render_template("placeholder.html")
+        return render_template("search/placeholder.html")
 
     try:
         urls = search_first_image_url(q, count=1)
