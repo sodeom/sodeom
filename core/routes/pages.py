@@ -71,6 +71,11 @@ def services_projects():
     return render_template("services/projects.html")
 
 
+@pages_bp.route("/services/trillioniar")
+def services_trillioniar():
+    return render_template("services/trillioniar.html")
+
+
 @pages_bp.route("/contact")
 def contact():
     return render_template("pages/contact.html")
