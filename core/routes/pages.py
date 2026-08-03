@@ -155,13 +155,6 @@ def favicon():
     )
 
 
-@pages_bp.route("/upgrade")
-def upgrade():
-    return render_template(
-        "pages/upgrade.html", stripe_payment_link="#", spots_remaining=100
-    )
-
-
 @pages_bp.route("/fake-sha256")
 def fakesha256():
     return render_template("pages/fake-sha256.html")
@@ -170,16 +163,6 @@ def fakesha256():
 @pages_bp.route("/ads.txt")
 def ads_txt():
     return render_template("system/ads.txt"), 200, {"Content-Type": "text/plain"}
-
-
-@pages_bp.route("/cancel")
-def cancel():
-    return render_template("pages/cancel.html")
-
-
-@pages_bp.route("/success")
-def success():
-    return render_template("pages/success.html")
 
 
 @pages_bp.route("/metrics")

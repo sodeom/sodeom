@@ -13,7 +13,7 @@ from core.services.ai_client import (
     _ALLOWED_COMPLETIONS_PARAMS,
     _AVAILABLE_MODELS,
     DEFAULT_MODEL,
-    client,
+    _get_client_and_model,
     openai_error,
 )
 
@@ -198,7 +198,9 @@ def query_ai():
             return jsonify({"error": "Invalid message role"}), 400
 
     try:
-        response = client.chat.completions.create(**safe_params)
+        use_client, use_model = _get_client_and_model(safe_params.get("model", DEFAULT_MODEL))
+        safe_params["model"] = use_model
+        response = use_client.chat.completions.create(**safe_params)
         answer = response.choices[0].message.content
         return jsonify({"answer": answer})
     except Exception:
@@ -273,13 +275,15 @@ def v1_chat_completions():
     completion_id = f"chatcmpl-{uuid.uuid4().hex}"
     created = int(time.time())
     model = safe_params["model"]
+    use_client, use_model = _get_client_and_model(model)
+    safe_params["model"] = use_model
 
     if want_stream:
 
         def _generate():
             safe_params["stream"] = True
             try:
-                for chunk in client.chat.completions.create(**safe_params):
+                for chunk in use_client.chat.completions.create(**safe_params):
                     delta = {}
                     finish_reason = None
                     if chunk.choices:
@@ -332,7 +336,7 @@ def v1_chat_completions():
         )
 
     try:
-        resp = client.chat.completions.create(**safe_params)
+        resp = use_client.chat.completions.create(**safe_params)
         choice = resp.choices[0]
         usage = resp.usage
         msg = choice.message
@@ -391,6 +395,7 @@ def ai_agent():
     body = request.get_json(silent=True) or {}
     model = body.get("model", DEFAULT_MODEL)
     max_steps = min(int(body.get("max_steps", 5)), 10)
+    use_client, model = _get_client_and_model(model)
 
     messages = body.get("messages")
     if not messages:
@@ -414,7 +419,7 @@ def ai_agent():
 
     for step in range(max_steps):
         try:
-            resp = client.chat.completions.create(
+            resp = use_client.chat.completions.create(
                 model=model,
                 messages=messages,
                 tools=_BUILTIN_TOOLS,
