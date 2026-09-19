@@ -6,21 +6,41 @@ import time
 from flask import jsonify
 from openai import OpenAI
 
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+GITHUB_ENDPOINT = "https://models.github.ai/inference"
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
 MISTRAL_ENDPOINT = "https://api.mistral.ai/v1"
 
 OPENCODE_API_KEY = os.getenv("OPENCODE_API_KEY", "")
 OPENCODE_ENDPOINT = "https://opencode.ai/zen/v1"
 
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "mistral-small-latest")
+if MISTRAL_API_KEY:
+    _DEFAULT_MODEL = "mistral-small-latest"
+elif GITHUB_TOKEN:
+    _DEFAULT_MODEL = "gpt-4o-mini"
+else:
+    _DEFAULT_MODEL = "mistral-small-latest"
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", _DEFAULT_MODEL)
 
-client = OpenAI(base_url=MISTRAL_ENDPOINT, api_key=MISTRAL_API_KEY)
+if MISTRAL_API_KEY:
+    client = OpenAI(base_url=MISTRAL_ENDPOINT, api_key=MISTRAL_API_KEY)
+elif GITHUB_TOKEN:
+    client = OpenAI(base_url=GITHUB_ENDPOINT, api_key=GITHUB_TOKEN)
+else:
+    client = None
 
 # Allowed parameters for the legacy /ai endpoint
 _ALLOWED_AI_PARAMS = {"model", "messages", "temperature", "max_tokens", "top_p"}
 
 # Models exposed through /v1/models
 _AVAILABLE_MODELS = [
+    "gpt-4o-mini",
+    "gpt-4o",
+    "o1-mini",
+    "Meta-Llama-3.1-8B-Instruct",
+    "Meta-Llama-3.1-70B-Instruct",
+    "Mistral-small",
+    "Phi-3.5-mini-instruct",
     "mistral-small-latest",
     "mistral-medium-latest",
     "mistral-large-latest",
@@ -48,6 +68,8 @@ _OPENCODE_MODELS = {
 def _get_client_and_model(model: str):
     """Return the right client and resolved model name for the given model."""
     if model in _OPENCODE_MODELS:
+        if not OPENCODE_API_KEY:
+            return None, model
         return OpenAI(base_url=OPENCODE_ENDPOINT, api_key=OPENCODE_API_KEY), model
     return client, model
 

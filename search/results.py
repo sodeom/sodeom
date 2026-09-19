@@ -135,7 +135,10 @@ def _get_instances():
     """Return SearXNG instances to try.
     Tries local first, then external via proxy if configured.
     """
-    return [_LOCAL_INSTANCE]
+    instances = [_LOCAL_INSTANCE]
+    if _EXTERNAL_INSTANCE and _EXTERNAL_INSTANCE != _LOCAL_INSTANCE:
+        instances.append(_EXTERNAL_INSTANCE)
+    return instances
 
 
 def _search_direct_via_proxy(query: str) -> "dict | None":
