@@ -90,14 +90,16 @@ infoboxes ── #}
   <h3 style="color: #10b981; margin-top: 0">Top Results for "{{ query }}"</h3>
   <ul class="results-list" style="margin: 0">
     {% for result in results %}
-    <li>
-      <h5>
-        <a href="{{ result.link }}" target="_blank" rel="noopener noreferrer">
-          {{ result.title }}
-        </a>
-      </h5>
-      <small style="color: #9ca3af">{{ result.link }}</small><br />
-      <small class="description-small">{{ result.description }}</small>
+    <li class="result-item">
+      <a
+        class="result-title"
+        href="{{ result.link }}"
+        target="_blank"
+        rel="noopener noreferrer"
+        >{{ result.title }}</a
+      >
+      <div class="result-url">{{ result.pretty_url or result.link }}</div>
+      <p class="description-small">{{ result.description }}</p>
     </li>
     {% endfor %}
   </ul>

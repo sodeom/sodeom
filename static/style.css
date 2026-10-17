@@ -452,46 +452,56 @@ main.container{flex:1;padding:var(--space-2xl) 0}
 .infobox-links a:hover{background:var(--emerald);color:#fff;border-color:var(--emerald)}
 
 /* ── Results list ── */
-.results-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:var(--space-md)}
+.results-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:var(--space-sm)}
 
 .results-list li{
   background:var(--bg-card);
   border:1px solid var(--border);
-  border-radius:var(--radius-xl);
-  padding:var(--space-lg);
+  border-radius:var(--radius-lg);
+  padding:var(--space-md) var(--space-lg);
   transition:all var(--transition);
 }
 
 .results-list li:hover{
   border-color:var(--border-light);
   background:var(--bg-secondary);
-  box-shadow:var(--shadow-md);
 }
 
-.results-list h5{
-  font-family:var(--font-display);
-  font-size:1.1rem;
-  font-weight:400;
-  margin-bottom:4px;
-  line-height:1.4;
+.result-title{
+  display:block;
+  font-family:var(--font-body);
+  font-size:1.12rem;
+  font-weight:600;
+  line-height:1.35;
+  color:var(--emerald-light);
+  margin-bottom:2px;
+  letter-spacing:-.01em;
 }
 
-.results-list a{color:var(--text-primary);transition:color var(--transition)}
-.results-list a:hover{color:var(--emerald-light)}
+.result-title:hover{
+  color:#fff;
+  text-decoration:underline;
+  text-underline-offset:2px;
+}
 
 .result-url{
-  display:block;
   font-size:.82rem;
   color:var(--text-muted);
   margin-bottom:6px;
   word-break:break-all;
+  line-height:1.4;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
 .description-small{
   font-size:.92rem;
   color:var(--text-secondary);
-  line-height:1.65;
+  line-height:1.6;
   display:block;
+  margin:0;
 }
 
 .result-engines{
@@ -1474,7 +1484,7 @@ pre code{background:none;padding:0}
   .infobox-table th{width:40%;font-size:.82rem}
 
   .results-list li{padding:var(--space-md)}
-  .results-list h5{font-size:1rem}
+  .result-title{font-size:1rem}
 
   .video-link{flex-direction:column}
   .video-thumb-wrap{width:100%;height:160px}
@@ -1515,7 +1525,7 @@ pre code{background:none;padding:0}
   header h1{font-size:1.2rem}
   .search-form input[type="text"]{padding:var(--space-sm) var(--space-md);font-size:.92rem}
   .results-list li{padding:var(--space-sm) var(--space-md);border-radius:var(--radius-lg)}
-  .results-list h5{font-size:.92rem;line-height:1.35}
+  .result-title{font-size:.95rem;line-height:1.35}
   .result-url{font-size:.75rem}
   .description-small{font-size:.85rem}
   .image-grid{grid-template-columns:repeat(2,1fr)}

@@ -232,20 +232,18 @@ infoboxes %}
 {% endif %}
 <ul class="results-list" role="list" aria-label="Search results">
   {% if results %} {% for result in results %}
-  <li role="listitem">
-    <h5>
-      <a
-        href="{{ result.link }}"
-        rel="noopener noreferrer"
-        aria-label="Open search result: {{ result.title }}"
-        >{{ result.title }}</a
-      >
-    </h5>
-    <small class="result-url">{{ result.pretty_url or result.link }}</small
-    ><br />
-    <small class="description-small">{{ result.description }}</small>
-    {% if result.engines %}<small class="result-engines"
-      >via {{ result.engines | join(', ') }}</small
+  <li role="listitem" class="result-item">
+    <a
+      class="result-title"
+      href="{{ result.link }}"
+      rel="noopener noreferrer"
+      aria-label="Open search result: {{ result.title }}"
+      >{{ result.title }}</a
+    >
+    <div class="result-url">{{ result.pretty_url or result.link }}</div>
+    <p class="description-small">{{ result.description }}</p>
+    {% if result.engines %}<span class="result-engines"
+      >via {{ result.engines | join(', ') }}</span
     >{% endif %}
   </li>
   {% endfor %} {% else %}
