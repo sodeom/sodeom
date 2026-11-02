@@ -155,6 +155,64 @@ def _get_instances():
 
 
 def _search_direct_via_proxy(query: str) -> "dict | None":
+    """Direct fallback for web search. Uses Bing RSS first (fast/robust), then Brave."""
+    if not _USE_PROXY:
+        return None
+    try:
+        import requests
+        import xml.etree.ElementTree as ET
+        from urllib.parse import quote, unquote, urlparse, parse_qs
+
+        url = f"https://www.bing.com/search?q={quote(query, safe='')}&format=rss"
+        proxied = f"{_PROXY_WORKER_URL}/?url={quote(url, safe='')}"
+        resp = requests.get(proxied, timeout=12, headers={"User-Agent": "Mozilla/5.0"})
+        if resp.status_code == 200:
+            root = ET.fromstring(resp.text)
+            results = []
+            seen = set()
+            for item in root.findall(".//item")[:10]:
+                title = (item.findtext("title") or "").strip()
+                link = (item.findtext("link") or "").strip()
+                desc = (item.findtext("description") or "").strip()
+                if not title or not link or link in seen:
+                    continue
+                seen.add(link)
+                # Use real destination URL if Bing wraps it.
+                try:
+                    parsed = urlparse(link)
+                    if "bing.com" in (parsed.netloc or "") and "apiclick.aspx" in (parsed.path or ""):
+                        qs = parse_qs(parsed.query)
+                        if "url" in qs:
+                            link = unquote(qs["url"][0])
+                except Exception:
+                    pass
+                results.append(
+                    {
+                        "title": title[:120],
+                        "url": link,
+                        "pretty_url": link,
+                        "content": desc[:220],
+                        "engine": "bing",
+                    }
+                )
+            if results:
+                return {
+                    "results": results,
+                    "answers": [],
+                    "suggestions": [],
+                    "infoboxes": [],
+                }
+    except Exception as e:
+        logger.debug("[Direct Bing RSS] Fallback failed: %s", e)
+
+    # Fall back to the previous Brave parser if Bing RSS fails.
+    try:
+        return _search_direct_via_proxy_brave(query)
+    except Exception:
+        return None
+
+
+def _search_direct_via_proxy_brave(query: str) -> "dict | None":
     """Fallback: search directly via proxy using Brave."""
     if not _USE_PROXY:
         return None
