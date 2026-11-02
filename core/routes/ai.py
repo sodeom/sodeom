@@ -229,13 +229,12 @@ def v1_models():
 
 @ai_bp.route("/v1/models/<path:model_id>", methods=["GET"])
 def v1_model(model_id):
-    if model_id not in _AVAILABLE_MODELS:
-        return openai_error(
-            f"Model '{model_id}' not found", "invalid_request_error", 404
-        )
+    # Unknown model IDs are aliased to the configured default model instead of
+    # returning an error; /v1 only serves the configured model.
+    resolved = model_id if model_id in _AVAILABLE_MODELS else DEFAULT_MODEL
     return jsonify(
         {
-            "id": model_id,
+            "id": resolved,
             "object": "model",
             "created": int(time.time()),
             "owned_by": "sodeom",
@@ -276,6 +275,7 @@ def v1_chat_completions():
     created = int(time.time())
     model = safe_params["model"]
     use_client, use_model = _get_client_and_model(model)
+    model = use_model
     safe_params["model"] = use_model
 
     if want_stream:

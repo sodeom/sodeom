@@ -6,6 +6,12 @@
     <title>{% block title %}Sodeom - Private Search Engine{% endblock %}</title>
 
     <link rel="icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+      rel="stylesheet"
+    />
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}?v={{ static_ver }}"
@@ -16,14 +22,18 @@
     <header class="search-header">
       <div class="container">
         {% block header %}
-        <img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
-        <h1>Sodeom - Private Search Engine</h1>
-        <p>Private search with zero tracking and minimal filtering.</p>
-        <nav>
-          <a href="/">Web</a> | <a href="/images">Images</a> |
-          <a href="/videos">Videos</a> | <a href="/news">News</a> |
-          <a href="/services">Services</a> |
-          <a href="/privacy-policy">Privacy</a> |
+        <a href="/" class="compact-logo">
+          <img src="/favicon.ico" alt="Sodeom Logo" width="40" height="40" />
+          <span>Sodeom</span>
+        </a>
+        <p class="hero-clarity">Private search. No tracking. No profiles.</p>
+        <nav aria-label="Search verticals">
+          <a href="/" class="active-tab">Web</a>
+          <a href="/images">Images</a>
+          <a href="/videos">Videos</a>
+          <a href="/news">News</a>
+          <a href="/services">Services</a>
+          <a href="/privacy-policy">Privacy</a>
           <a href="/contact">Contact</a>
         </nav>
         {% endblock %}
@@ -38,11 +48,7 @@
           <strong>Sodeom</strong>
           <ul>
             <li><a href="/about">About</a></li>
-            <li>
-              <a href="/contact" style="font-weight: bold"
-                >Contact &amp; Feedback</a
-              >
-            </li>
+            <li><a href="/contact">Contact &amp; Feedback</a></li>
             <li><a href="/privacy-policy">Privacy Policy</a></li>
             <li><a href="/terms">Terms</a></li>
           </ul>
@@ -60,8 +66,8 @@
         <div>
           <strong>Resources</strong>
           <ul>
-            <li><a href="/contact">Contact</a></li>
             <li><a href="/faq">FAQ</a></li>
+            <li><a href="/apis">API Docs</a></li>
             <li>
               <a href="https://github.com/sodeom" target="_blank" rel="noopener"
                 >GitHub</a
@@ -99,40 +105,11 @@
           </ul>
         </div>
         <div class="footer-meta">
-          <span class="beta-badge">Beta</span><br />
-          <small>&copy; 2026 Sodeom. Independent Privacy Search.</small><br />
+          <span class="beta-badge">Beta</span>
+          <small>&copy; 2026 Sodeom. Independent privacy search.</small>
           <small>Built by Abdul Hadi.</small>
         </div>
       </div>
-      <style>
-        .footer-grid {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 2em;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin: 2em 0 0 0;
-        }
-        .footer-grid > div {
-          min-width: 140px;
-        }
-        .footer-grid ul {
-          list-style: none;
-          padding: 0;
-          margin: 0.5em 0 0 0;
-        }
-        .footer-grid li {
-          margin-bottom: 0.3em;
-        }
-        .footer-grid a:hover {
-          text-decoration: underline;
-        }
-        .footer-meta {
-          font-size: 0.95em;
-          color: #666;
-          text-align: left;
-        }
-      </style>
     </footer>
 
     <script

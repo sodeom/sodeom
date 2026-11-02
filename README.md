@@ -44,7 +44,7 @@
 
 ## What is Sodeom?
 
-**Sodeom** is a privacy-first, open-source search engine built with Python and Flask. It aggregates results from multiple search engines (DuckDuckGo, Bing, and Brave) while acting as a proxy between you and those services — meaning **they never see your IP, cookies, or identity**. Only the Sodeom server communicates with external search providers.
+**Sodeom** is a privacy-first, open-source search engine built with Python and Flask. It aggregates results through **SearXNG** (which fans out to DuckDuckGo, Bing, Brave, and more) while acting as a proxy between you and those services — meaning **they never see your IP, cookies, or identity**. Only the Sodeom server communicates with upstream search providers, locally or through an optional Cloudflare Worker proxy.
 
 Founded in 2025 and built by **Abdul Hadi**, Sodeom is designed for users who want fast, relevant search results without sacrificing their privacy.
 
@@ -113,6 +113,10 @@ Sodeom takes a **zero-knowledge** approach to search:
 Your browser talks **only** to the Sodeom server. The server fetches results from external search engines on your behalf, filters them, and returns clean results — all without exposing your identity.
 
 ---
+
+## Screenshots
+
+![Sodeom search preview](static/preview.jpg)
 
 ## Getting Started
 
@@ -328,6 +332,13 @@ Sodeom uses a **multi-engine aggregation** strategy with automatic fallback:
 | **Brave**      | ✅ Available | ✅ Fallback  | HTML scraping (web), JSON API (images) |
 
 ---
+
+## PythonAnywhere free plan notes
+
+- Disable local SearXNG with `SEARXNG_DISABLE_LOCAL_START=1`; use an external SearXNG URL.
+- External calls go through the configured Cloudflare Worker proxy (`PROXY_WORKER_URL`).
+- Prefer MySQL/Postgres over SQLite (PythonAnywhere warns SQLite is slow on the network filesystem).
+- Keep workers low; the in-memory result cache reduces repeated upstream calls.
 
 ## Self-Hosting
 

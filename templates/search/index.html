@@ -73,7 +73,7 @@ endblock %} {% block head_extra %}
 results page #}
 <div class="compact-header-row">
   <a href="/" class="compact-logo">
-    <img src="/favicon.ico" alt="Sodeom Logo" width="36" height="36" />
+    <img src="/favicon.ico" alt="Sodeom Logo" width="32" height="32" />
     <span>Sodeom</span>
   </a>
   <form
@@ -93,43 +93,34 @@ results page #}
       required
     />
     <button class="btn-primary" type="submit" data-search-submit>Search</button>
-    <span class="loading-indicator" data-loading hidden>Searching...</span>
+    <span class="loading-indicator" data-loading hidden>Searching…</span>
   </form>
 </div>
 <p class="form-error" data-search-error aria-live="polite">
   {% if query_error %}{{ query_error }}{% endif %}
 </p>
-<nav class="search-nav">
-  <a href="/?q={{ query | urlencode }}" class="active-tab">Web</a> |
-  <a href="/images?q={{ query | urlencode }}">Images</a> |
-  <a href="/videos?q={{ query | urlencode }}">Videos</a> |
-  <a href="/news?q={{ query | urlencode }}">News</a> |
-  <a href="/wiki/{{ query | urlencode }}">Wiki</a> |
-  <a href="/contact">Feedback</a>
-  {% if has_prev %} |
-  <a href="{{ url_for('search.index', q=query, page=page-1) }}">← Prev</a>{%
-  endif %} {% if has_next %} |
-  <a href="{{ url_for('search.index', q=query, page=page+1) }}">Next →</a>{%
-  endif %}
+<nav class="search-nav" aria-label="Search verticals">
+  <a href="/?q={{ query | urlencode }}" class="active-tab">Web</a>
+  <a href="/images?q={{ query | urlencode }}">Images</a>
+  <a href="/videos?q={{ query | urlencode }}">Videos</a>
+  <a href="/news?q={{ query | urlencode }}">News</a>
+  <a href="/wiki/{{ query | urlencode }}">Wiki</a>
+  {% if has_prev %}
+  <a href="{{ url_for('search.index', q=query, page=page-1) }}">← Prev</a>
+  {% endif %} {% if has_next %}
+  <a href="{{ url_for('search.index', q=query, page=page+1) }}">Next →</a>
+  {% endif %}
 </nav>
-{% else %} {# Full hero header for homepage #}
-<img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
-<h1>
-  Sodeom <span class="beta-badge">Beta</span> – Private Search Without Tracking
-</h1>
-<p
-  class="hero-clarity"
-  style="font-size: 1.13em; margin-top: 0.5em; color: #a7f3d0"
->
-  Search the web freely without profiling, behavioral tracking, or personalized
-  manipulation.
-</p>
+{% else %} {# Homepage hero #}
+<img src="/favicon.ico" alt="Sodeom Logo" width="44" height="44" />
+<h1>Sodeom <span class="beta-badge">Beta</span></h1>
+<p class="hero-clarity">Private search. No tracking. No profiles.</p>
 
 <form class="search-form" method="GET" role="search" data-search-form="">
   <input
     type="text"
     name="q"
-    placeholder="Search the web without tracking..."
+    placeholder="Search the web privately…"
     value=""
     maxlength="400"
     autocapitalize="none"
@@ -137,12 +128,12 @@ results page #}
     required
   />
   <button class="btn-primary" type="submit" data-search-submit>
-    Search Privately
+    Search
   </button>
-  <span class="loading-indicator" data-loading hidden>Searching...</span>
+  <span class="loading-indicator" data-loading hidden>Searching…</span>
 </form>
 
-<p class="trust-line">No cookies. No user profiles. No targeted ads.</p>
+<p class="trust-line">No cookies. No profiles. No targeted ads.</p>
 
 <p class="form-error" data-search-error aria-live="polite">
   {% if query_error %}{{ query_error }}{% endif %}
@@ -232,7 +223,14 @@ infoboxes %}
 {% endif %}
 <ul class="results-list" role="list" aria-label="Search results">
   {% if results %} {% for result in results %}
+  {% set site = (result.pretty_url or result.link).split('/')[0] %}
+  {% if '://' in site %}{% set site = site.split('://')[-1] %}{% endif %}
+  {% if site.startswith('www.') %}{% set site = site[4:] %}{% endif %}
   <li role="listitem" class="result-item">
+    <div class="result-source">
+      <span class="result-favicon" aria-hidden="true">{{ site[:1] | upper }}</span>
+      <span class="result-domain">{{ site }}</span>
+    </div>
     <a
       class="result-title"
       href="{{ result.link }}"
@@ -240,15 +238,17 @@ infoboxes %}
       aria-label="Open search result: {{ result.title }}"
       >{{ result.title }}</a
     >
-    <div class="result-url">{{ result.pretty_url or result.link }}</div>
-    <p class="description-small">{{ result.description }}</p>
+    {% if result.description %}
+    <p class="result-description">{{ result.description }}</p>
+    {% endif %}
     {% if result.engines %}<span class="result-engines"
       >via {{ result.engines | join(', ') }}</span
     >{% endif %}
   </li>
   {% endfor %} {% else %}
   <li class="no-results">
-    No results found. Try different keywords or simplify your query.
+    <h3>No results found</h3>
+    <p>Try different keywords or simplify your query.</p>
   </li>
   {% endif %}
 </ul>
@@ -262,8 +262,7 @@ infoboxes %}
     >{{ suggestion }}</a
   >{% endfor %}
 </div>
-{% endif %} {# About and Pro sections - only show when no query #} {% if not
-query %}
+{% endif %} {# About - only on homepage #} {% if not query %}
 <section class="about-section">
   <h2>About Sodeom</h2>
   <p>
@@ -273,7 +272,7 @@ query %}
       >GitHub</a
     >
   </p>
-  <ul style="margin: 0.7em 0 0 1.2em; color: #6ee7b7">
+  <ul>
     <li>No user accounts required</li>
     <li>No search history stored</li>
     <li>No targeted ads</li>

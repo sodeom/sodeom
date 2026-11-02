@@ -22,15 +22,15 @@
   }
 </script>
 {% endblock %} {% block header %}
-<img src="/favicon.ico" alt="Sodeom Logo" width="48" height="48" />
+<img src="/favicon.ico" alt="Sodeom Logo" width="44" height="44" />
 <h1>Sodeom Image Search</h1>
-<p>Private, fast &amp; clean image search.</p>
+<p class="hero-clarity">Private, fast &amp; clean image search.</p>
 
 <form class="search-form" method="GET" role="search">
   <input
     type="text"
     name="q"
-    placeholder="Search images privately..."
+    placeholder="Search images privately…"
     value="{{ query or '' }}"
     required
   />
@@ -38,17 +38,17 @@
 </form>
 
 {% if query %}
-<nav class="search-nav">
-  <a href="/?q={{ query | urlencode }}">Web</a> |
-  <a href="/images?q={{ query | urlencode }}" class="active-tab">Images</a> |
-  <a href="/videos?q={{ query | urlencode }}">Videos</a> |
-  <a href="/news?q={{ query | urlencode }}">News</a> |
+<nav class="search-nav" aria-label="Search verticals">
+  <a href="/?q={{ query | urlencode }}">Web</a>
+  <a href="/images?q={{ query | urlencode }}" class="active-tab">Images</a>
+  <a href="/videos?q={{ query | urlencode }}">Videos</a>
+  <a href="/news?q={{ query | urlencode }}">News</a>
   <a href="/wiki/{{ query | urlencode }}">Wiki</a>
-  {% if has_prev %} |
-  <a href="/images?q={{ query | urlencode }}&amp;page={{ page - 1 }}">← Prev</a
-  >{% endif %} {% if has_next %} |
-  <a href="/images?q={{ query | urlencode }}&amp;page={{ page + 1 }}">Next →</a
-  >{% endif %}
+  {% if has_prev %}
+  <a href="/images?q={{ query | urlencode }}&amp;page={{ page - 1 }}">← Prev</a>
+  {% endif %} {% if has_next %}
+  <a href="/images?q={{ query | urlencode }}&amp;page={{ page + 1 }}">Next →</a>
+  {% endif %}
 </nav>
 {% endif %} {% endblock %} {% block content %} {% if corrections %}
 <div class="search-correction">

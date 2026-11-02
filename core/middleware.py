@@ -27,7 +27,8 @@ def add_privacy_headers(response):
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "script-src 'self' 'unsafe-inline'; "
-        "style-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' data: https://fonts.gstatic.com; "
         "img-src 'self' data: https:; "
         "connect-src 'self'; "
         "frame-src https://www.youtube.com "

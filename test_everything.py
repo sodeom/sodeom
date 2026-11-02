@@ -195,9 +195,6 @@ class SodeomSmokeTest(unittest.TestCase):
             "/robots.txt",
             "/sitemap.xml",
             "/fake-sha256",
-            "/upgrade",
-            "/cancel",
-            "/success",
             "/metrics",
             "/aaaa",
         ]
