@@ -19,6 +19,98 @@ from core.services.ai_client import (
 
 ai_bp = Blueprint("ai", __name__)
 
+
+# Parameters we are confident every OpenAI-compatible backend accepts.  When a
+# framework sends extra params (response_format, tools, seed, ...) that the
+# upstream rejects, we retry once with only these so the call still succeeds.
+_CORE_COMPLETION_PARAMS = {"model", "messages", "stream", "max_tokens", "temperature", "top_p"}
+
+
+def _usage_dict(usage) -> dict:
+    if usage is None:
+        return {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+    return {
+        "prompt_tokens": getattr(usage, "prompt_tokens", 0) or 0,
+        "completion_tokens": getattr(usage, "completion_tokens", 0) or 0,
+        "total_tokens": getattr(usage, "total_tokens", 0) or 0,
+    }
+
+
+def _create_with_fallback(client, params: dict):
+    """Call chat.completions.create with two safety nets.
+
+    1) If the upstream rejects extra params (response_format, tools, seed, ...),
+       retry once with only the core params so framework calls still succeed.
+    2) beam is a reasoning model: small max_tokens can be burned on reasoning,
+       yielding empty content with finish_reason="length". Retry with a larger
+       budget when that happens.
+    """
+    try:
+        try:
+            resp = client.chat.completions.create(**params)
+        except Exception as first_err:
+            slim = {k: v for k, v in params.items() if k in _CORE_COMPLETION_PARAMS}
+            if slim == params:
+                raise
+            try:
+                resp = client.chat.completions.create(**slim)
+            except Exception:
+                raise first_err
+    except Exception:
+        raise
+
+    try:
+        choice = resp.choices[0]
+        content = getattr(choice.message, "content", None) or ""
+        if not content.strip() and choice.finish_reason == "length":
+            cur = int(params.get("max_tokens") or params.get("max_completion_tokens") or 1024)
+            bigger = min(max(cur * 4, 512), 4096)
+            if bigger > cur:
+                p2 = dict(params)
+                if "max_tokens" in p2:
+                    p2["max_tokens"] = bigger
+                if "max_completion_tokens" in p2:
+                    p2["max_completion_tokens"] = bigger
+                resp2 = client.chat.completions.create(**p2)
+                c2 = resp2.choices[0]
+                if ((getattr(c2.message, "content", None) or "").strip()):
+                    return resp2
+    except Exception:
+        pass
+    return resp
+
+
+def _chunk_to_payload(chunk, completion_id: str, created: int, model: str) -> dict:
+    delta = {}
+    finish_reason = None
+    if chunk.choices:
+        c = chunk.choices[0]
+        if c.delta.role:
+            delta["role"] = c.delta.role
+        if c.delta.content:
+            delta["content"] = c.delta.content
+        if c.delta.tool_calls:
+            delta["tool_calls"] = [
+                {
+                    "index": tc.index,
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {
+                        "name": tc.function.name if tc.function else "",
+                        "arguments": tc.function.arguments if tc.function else "",
+                    },
+                }
+                for tc in c.delta.tool_calls
+            ]
+        finish_reason = c.finish_reason
+    return {
+        "id": completion_id,
+        "object": "chat.completion.chunk",
+        "created": created,
+        "model": model,
+        "choices": [{"index": 0, "delta": delta, "finish_reason": finish_reason}],
+    }
+
 # ---------------------------------------------------------------------------
 # Built-in tools for the agentic endpoint
 # ---------------------------------------------------------------------------
@@ -267,8 +359,20 @@ def v1_chat_completions():
                 f"Message with role '{role}' must have a 'content' field"
             )
 
-    if "max_tokens" not in safe_params:
+    if "max_tokens" not in safe_params and "max_completion_tokens" not in safe_params:
         safe_params["max_tokens"] = 1024
+    # beam is a reasoning model: tiny limits are spent on reasoning and can
+    # produce empty content, so enforce a small floor for framework calls.
+    for _k in ("max_tokens", "max_completion_tokens"):
+        if isinstance(safe_params.get(_k), int) and safe_params[_k] < 128:
+            safe_params[_k] = 128
+
+    # Frameworks (LangChain, LangGraph, LlamaIndex, ...) send stream_options.
+    # Keep it local: never forward it upstream.
+    stream_options = body.get("stream_options")
+    if not isinstance(stream_options, dict):
+        stream_options = {}
+    include_usage = bool(stream_options.get("include_usage"))
 
     want_stream = bool(body.get("stream", False))
     completion_id = f"chatcmpl-{uuid.uuid4().hex}"
@@ -280,42 +384,154 @@ def v1_chat_completions():
 
     if want_stream:
 
-        def _generate():
-            safe_params["stream"] = True
+        def _iter_payloads(params: dict):
+            params = {**params, "stream": True}
+            emitted = False
+            last_usage = None
             try:
-                for chunk in use_client.chat.completions.create(**safe_params):
-                    delta = {}
-                    finish_reason = None
+                stream = use_client.chat.completions.create(**params)
+                for chunk in stream:
+                    emitted = True
+                    if getattr(chunk, "usage", None):
+                        last_usage = chunk.usage
+                    yield _chunk_to_payload(chunk, completion_id, created, model)
+            except Exception:
+                if emitted:
+                    raise
+                slim = {k: v for k, v in params.items() if k in _CORE_COMPLETION_PARAMS}
+                if slim == params:
+                    raise
+                stream = use_client.chat.completions.create(**slim)
+                for chunk in stream:
+                    emitted = True
+                    if getattr(chunk, "usage", None):
+                        last_usage = chunk.usage
+                    yield _chunk_to_payload(chunk, completion_id, created, model)
+            if include_usage:
+                yield {
+                    "id": completion_id,
+                    "object": "chat.completion.chunk",
+                    "created": created,
+                    "model": model,
+                    "choices": [],
+                    "usage": _usage_dict(last_usage),
+                }
+
+        def _generate():
+            try:
+                for payload in _iter_payloads(safe_params):
+                    yield f"data: {json.dumps(payload)}\n\n"
+                yield "data: [DONE]\n\n"
+            except Exception:
+                err = {
+                    "error": {
+                        "message": "AI service temporarily unavailable",
+                        "type": "server_error",
+                    }
+                }
+                yield f"data: {json.dumps(err)}\n\n"
+                yield "data: [DONE]\n\n"
+
+        return Response(
+            stream_with_context(_generate()),
+            mimetype="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
+
+    try:
+        resp = _create_with_fallback(use_client, safe_params)
+    except Exception:
+        return openai_error("AI service temporarily unavailable", "server_error", 500)
+
+    choice = resp.choices[0]
+    usage = resp.usage
+    msg = choice.message
+    message_out = {
+        "role": "assistant",
+        "content": msg.content,
+    }
+    # Pass through tool_calls if the model wants to call a function
+    if msg.tool_calls:
+        message_out["tool_calls"] = [
+            {
+                "id": tc.id,
+                "type": "function",
+                "function": {
+                    "name": tc.function.name,
+                    "arguments": tc.function.arguments,
+                },
+            }
+            for tc in msg.tool_calls
+        ]
+    return jsonify(
+        {
+            "id": completion_id,
+            "object": "chat.completions",
+            "created": created,
+            "model": model,
+            "choices": [
+                {
+                    "index": 0,
+                    "message": message_out,
+                    "finish_reason": choice.finish_reason or "stop",
+                }
+            ],
+            "usage": _usage_dict(usage),
+        }
+    )
+
+
+# ---------------------------------------------------------------------------
+# Legacy /v1/completions (older SDKs & frameworks still call this)
+# ---------------------------------------------------------------------------
+@ai_bp.route("/v1/completions", methods=["POST"])
+def v1_completions():
+    body = request.get_json(silent=True) or {}
+
+    prompt = body.get("prompt")
+    if isinstance(prompt, list):
+        prompt = "\n".join(str(p) for p in prompt)
+    if not isinstance(prompt, str) or not prompt.strip():
+        return openai_error("prompt must be a non-empty string", param="prompt")
+
+    messages = [{"role": "user", "content": prompt}]
+    chat_body = {"model": body.get("model", DEFAULT_MODEL), "messages": messages}
+    for k in ("temperature", "top_p", "max_tokens", "stop", "n", "seed", "logit_bias", "user"):
+        if k in body:
+            chat_body[k] = body[k]
+    if "max_tokens" not in chat_body:
+        chat_body["max_tokens"] = 1024
+    if isinstance(chat_body.get("max_tokens"), int) and chat_body["max_tokens"] < 128:
+        chat_body["max_tokens"] = 128
+
+    want_stream = bool(body.get("stream", False))
+    completion_id = f"cmpl-{uuid.uuid4().hex}"
+    created = int(time.time())
+    model = chat_body["model"]
+    use_client, use_model = _get_client_and_model(model)
+    model = use_model
+    chat_body["model"] = use_model
+
+    if want_stream:
+
+        def _generate():
+            try:
+                stream = use_client.chat.completions.create(**{**chat_body, "stream": True})
+                for chunk in stream:
+                    text = ""
+                    finish = None
                     if chunk.choices:
                         c = chunk.choices[0]
-                        if c.delta.role:
-                            delta["role"] = c.delta.role
-                        if c.delta.content:
-                            delta["content"] = c.delta.content
-                        # Pass through tool_calls deltas
-                        if c.delta.tool_calls:
-                            delta["tool_calls"] = [
-                                {
-                                    "index": tc.index,
-                                    "id": tc.id,
-                                    "type": "function",
-                                    "function": {
-                                        "name": tc.function.name if tc.function else "",
-                                        "arguments": tc.function.arguments
-                                        if tc.function
-                                        else "",
-                                    },
-                                }
-                                for tc in c.delta.tool_calls
-                            ]
-                        finish_reason = c.finish_reason
+                        if c.delta and c.delta.content:
+                            text = c.delta.content
+                        finish = c.finish_reason
                     payload = {
                         "id": completion_id,
-                        "object": "chat.completion.chunk",
+                        "object": "text_completion",
                         "created": created,
                         "model": model,
                         "choices": [
-                            {"index": 0, "delta": delta, "finish_reason": finish_reason}
+                            {"text": text, "index": 0, "logprobs": None, "finish_reason": finish}
                         ],
                     }
                     yield f"data: {json.dumps(payload)}\n\n"
@@ -328,6 +544,7 @@ def v1_chat_completions():
                     }
                 }
                 yield f"data: {json.dumps(err)}\n\n"
+                yield "data: [DONE]\n\n"
 
         return Response(
             stream_with_context(_generate()),
@@ -336,49 +553,39 @@ def v1_chat_completions():
         )
 
     try:
-        resp = use_client.chat.completions.create(**safe_params)
-        choice = resp.choices[0]
-        usage = resp.usage
-        msg = choice.message
-        message_out = {
-            "role": "assistant",
-            "content": msg.content,
-        }
-        # Pass through tool_calls if the model wants to call a function
-        if msg.tool_calls:
-            message_out["tool_calls"] = [
-                {
-                    "id": tc.id,
-                    "type": "function",
-                    "function": {
-                        "name": tc.function.name,
-                        "arguments": tc.function.arguments,
-                    },
-                }
-                for tc in msg.tool_calls
-            ]
-        return jsonify(
-            {
-                "id": completion_id,
-                "object": "chat.completion",
-                "created": created,
-                "model": model,
-                "choices": [
-                    {
-                        "index": 0,
-                        "message": message_out,
-                        "finish_reason": choice.finish_reason or "stop",
-                    }
-                ],
-                "usage": {
-                    "prompt_tokens": usage.prompt_tokens if usage else 0,
-                    "completion_tokens": usage.completion_tokens if usage else 0,
-                    "total_tokens": usage.total_tokens if usage else 0,
-                },
-            }
-        )
+        resp = _create_with_fallback(use_client, chat_body)
     except Exception:
         return openai_error("AI service temporarily unavailable", "server_error", 500)
+
+    choice = resp.choices[0]
+    return jsonify(
+        {
+            "id": completion_id,
+            "object": "text_completion",
+            "created": created,
+            "model": model,
+            "choices": [
+                {
+                    "text": choice.message.content or "",
+                    "index": 0,
+                    "logprobs": None,
+                    "finish_reason": choice.finish_reason or "stop",
+                }
+            ],
+            "usage": _usage_dict(resp.usage),
+        }
+    )
+
+
+@ai_bp.route("/v1/embeddings", methods=["POST"])
+def v1_embeddings():
+    # This deployment serves a chat model only. Return a proper OpenAI-shaped
+    # error so frameworks fail loudly instead of hanging.
+    return openai_error(
+        "Embeddings are not supported by this deployment",
+        "unsupported",
+        501,
+    )
 
 
 # ---------------------------------------------------------------------------

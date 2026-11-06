@@ -107,6 +107,7 @@ _ALLOWED_COMPLETIONS_PARAMS = {
     "messages",
     "temperature",
     "max_tokens",
+    "max_completion_tokens",
     "top_p",
     "frequency_penalty",
     "presence_penalty",
@@ -114,10 +115,16 @@ _ALLOWED_COMPLETIONS_PARAMS = {
     "n",
     "seed",
     "logprobs",
+    "top_logprobs",
+    "logit_bias",
     "response_format",
     "tools",
     "tool_choice",
     "parallel_tool_calls",
+    "functions",
+    "function_call",
+    "user",
+    "metadata",
 }
 
 
