@@ -131,6 +131,11 @@ def apis_wiki():
     return render_template("apis/apis_wiki.html")
 
 
+@pages_bp.route("/apis/mcp")
+def apis_mcp():
+    return render_template("apis/apis_mcp.html")
+
+
 @pages_bp.route("/apis/routes")
 def apis_routes():
     return render_template("apis/apis_routes.html")

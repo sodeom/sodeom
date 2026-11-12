@@ -169,6 +169,116 @@ class SodeomSmokeTest(unittest.TestCase):
             finally:
                 self.app.static_folder = original_static_folder
 
+    def test_mcp_initialize_and_tools(self) -> None:
+        response = self.client.post(
+            "/mcp",
+            json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-06-18",
+                    "capabilities": {},
+                    "clientInfo": {"name": "test", "version": "0"},
+                },
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertEqual(payload["result"]["serverInfo"]["name"], "sodeom")
+        self.assertEqual(payload["result"]["protocolVersion"], "2025-06-18")
+        self.assertTrue(response.headers.get("Mcp-Session-Id"))
+
+        # Unsupported client version still negotiates cleanly
+        response = self.client.post(
+            "/mcp",
+            json={"jsonrpc": "2.0", "id": 2, "method": "initialize",
+                  "params": {"protocolVersion": "1999-01-01"}},
+        )
+        self.assertEqual(
+            response.get_json()["result"]["protocolVersion"], "2025-06-18"
+        )
+
+        response = self.client.post(
+            "/mcp", json={"jsonrpc": "2.0", "method": "notifications/initialized"}
+        )
+        self.assertEqual(response.status_code, 202)
+
+        response = self.client.post("/mcp", json={"jsonrpc": "2.0", "id": 3, "method": "tools/list"})
+        names = [t["name"] for t in response.get_json()["result"]["tools"]]
+        for expected in ("search", "search_news", "wiki", "fetch_url"):
+            self.assertIn(expected, names)
+
+    def test_mcp_tool_call_and_errors(self) -> None:
+        sample = {
+            "results": [
+                {"title": "Python", "link": "https://python.org", "description": "Language"}
+            ],
+            "suggestions": ["py"],
+            "corrections": [],
+            "infoboxes": [],
+            "answers": [],
+            "query": "python",
+            "page": 1,
+            "number_of_results": 1,
+        }
+        with patch("core.routes.mcp.search_web", return_value=sample):
+            response = self.client.post(
+                "/mcp",
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 4,
+                    "method": "tools/call",
+                    "params": {"name": "search", "arguments": {"query": "python"}},
+                },
+            )
+        self.assertEqual(response.status_code, 200)
+        body = response.get_json()["result"]
+        self.assertFalse(body["isError"])
+        self.assertIn("Python", body["content"][0]["text"])
+        self.assertIn("https://python.org", body["content"][0]["text"])
+
+        # Unknown method -> -32601
+        response = self.client.post("/mcp", json={"jsonrpc": "2.0", "id": 5, "method": "no/such"})
+        self.assertEqual(response.get_json()["error"]["code"], -32601)
+
+        # Unknown tool -> -32602
+        response = self.client.post(
+            "/mcp", json={"jsonrpc": "2.0", "id": 6, "method": "tools/call", "params": {"name": "nope"}}
+        )
+        self.assertEqual(response.get_json()["error"]["code"], -32602)
+
+        # Missing required argument -> -32602
+        response = self.client.post(
+            "/mcp", json={"jsonrpc": "2.0", "id": 7, "method": "tools/call", "params": {"name": "search", "arguments": {}}}
+        )
+        self.assertEqual(response.get_json()["error"]["code"], -32602)
+
+        # Malformed body -> 400 / -32700
+        response = self.client.post("/mcp", data="{oops", content_type="application/json")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.get_json()["error"]["code"], -32700)
+
+    def test_mcp_transport_and_discovery(self) -> None:
+        # No server-push stream: GET is 405 by spec
+        self.assertEqual(self.client.get("/mcp").status_code, 405)
+
+        # DELETE requires a session id
+        self.assertEqual(self.client.delete("/mcp").status_code, 400)
+        self.assertEqual(
+            self.client.delete("/mcp", headers={"Mcp-Session-Id": "x"}).status_code, 200
+        )
+
+        # CORS preflight for browser-based clients
+        response = self.client.options("/mcp")
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.headers.get("Access-Control-Allow-Origin"), "*")
+
+        # Discovery document
+        response = self.client.get("/.well-known/mcp.json")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("/mcp", response.get_json()["endpoints"]["mcp"])
+
     def test_static_pages(self) -> None:
         paths = [
             "/about",
@@ -189,6 +299,7 @@ class SodeomSmokeTest(unittest.TestCase):
             "/apis/images",
             "/apis/placeholder",
             "/apis/wiki",
+            "/apis/mcp",
             "/apis/routes",
             "/faq",
             "/urls",

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://sodeom.com/static/logo.png" alt="Sodeom Logo" width="200"/>
+  <img src="https://sodeom.com/static/hero.gif" alt="Sodeom" width="240"/>
 </p>
 
 <h1 align="center">Sodeom — Private Search Engine</h1>
@@ -32,6 +32,7 @@
   - [Web Search](#web-search-api)
   - [Image Search](#image-search)
   - [Placeholder Image](#placeholder-image-api)
+  - [MCP Server for AI Agents](#mcp-server-for-ai-agents)
 - [Routes Overview](#routes-overview)
 - [Project Structure](#project-structure)
 - [How Search Works](#how-search-works)
@@ -242,6 +243,96 @@ Returns the direct URL string of the image instead of the image itself.
 
 ---
 
+## MCP Server for AI Agents
+
+Sodeom exposes a **public, keyless [Model Context Protocol](https://modelcontextprotocol.io) server** at
+**<https://sodeom.com/mcp>** (Streamable HTTP transport). Any MCP-capable agent — Claude Code, Claude
+Desktop, OpenCode, LangChain MCP adapters, or your own bot — can search the web through Sodeom with
+**zero API keys and zero signup**.
+
+Full docs: **<https://sodeom.com/apis/mcp>** · discovery:
+**<https://sodeom.com/.well-known/mcp.json>**
+
+```mermaid
+sequenceDiagram
+    participant A as AI Agent (MCP client)
+    participant S as Sodeom /mcp (JSON-RPC 2.0)
+    participant X as SearXNG + Bing/Brave fallbacks
+    A->>S: initialize (protocolVersion 2025-06-18)
+    S-->>A: serverInfo + tool capabilities
+    A->>S: tools/list
+    S-->>A: search, search_news, search_videos, search_images, wiki, fetch_url
+    A->>S: tools/call {"name":"search","arguments":{"query":"Flask SSE"}}
+    S->>X: aggregated query (no local SearXNG needed)
+    X-->>S: results
+    S-->>A: title / URL / snippet text (max 12k chars)
+```
+
+### Quick start
+
+```bash
+# Claude Code
+claude mcp add --transport http sodeom https://sodeom.com/mcp
+
+# Any stdio client
+npx -y mcp-remote https://sodeom.com/mcp
+
+# Raw JSON-RPC over HTTP
+curl -s https://sodeom.com/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call",
+       "params":{"name":"search","arguments":{"query":"python 3.14"}}}'
+```
+
+OpenCode (`~/.config/opencode/opencode.json`):
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "sodeom": { "type": "remote", "url": "https://sodeom.com/mcp" }
+    }
+  }
+}
+```
+
+### Tools
+
+| Tool              | Arguments                                | What it does                                  |
+| ----------------- | ---------------------------------------- | --------------------------------------------- |
+| `search`          | `query`, `page`, `language`              | Web search (title / URL / snippet lines)      |
+| `search_news`     | `query`, `page`, `language`              | Recent news articles                          |
+| `search_videos`   | `query`, `page`, `language`              | Video results (mostly YouTube)                |
+| `search_images`   | `query`, `page`, `language`              | Images with direct `img_src` URLs             |
+| `wiki`            | `query`, `language`                      | Wikipedia / Wikidata facts and links          |
+| `fetch_url`       | `url`, `max_chars`                       | Reads a public page as text (8k chars, SSRF-guarded) |
+
+### Live example
+
+```python
+from mcp import ClientSession
+from mcp.client.streamable_http import streamable_http_client  # mcp>=2
+
+# on the 1.x SDK: from mcp.client.streamable_http import streamablehttp_client
+# and unpack as (read, write, _)
+
+async with streamable_http_client("https://sodeom.com/mcp") as (read, write):
+    async with ClientSession(read, write) as session:
+        await session.initialize()
+        result = await session.call_tool("search", {"query": "Flask SSE streaming"})
+        print(result.content[0].text)
+```
+
+Notes:
+
+- **No auth, no rate-limit key** — the endpoint is read-only and public by design.
+- `Mcp-Session-Id` is issued on `initialize` but never required (stateless clients work).
+- Tool output is plain text capped at 12 000 characters to protect agent context windows.
+- `fetch_url` refuses private / loopback / link-local addresses.
+- Protocol: `2025-06-18` (also accepts `2025-03-26` and `2024-11-05`).
+
+---
+
 ## Routes Overview
 
 | Route              | Method    | Description                                  |
@@ -259,6 +350,9 @@ Returns the direct URL string of the image instead of the image itself.
 | `/privacy-policy`  | GET       | Privacy policy                               |
 | `/terms`           | GET       | Terms of service                             |
 | `/faq`             | GET       | Frequently asked questions                   |
+| `/mcp`             | POST      | **MCP server for AI agents (no API key)**    |
+| `/.well-known/mcp.json` | GET   | MCP discovery descriptor                     |
+| `/apis/mcp`        | GET       | MCP documentation                            |
 | `/apis`            | GET       | API documentation                            |
 | `/urls`            | GET       | All available routes                         |
 | `/blog/<blog>`     | GET       | Blog posts                                   |

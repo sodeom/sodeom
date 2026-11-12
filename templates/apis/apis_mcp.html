@@ -1,0 +1,222 @@
+{% extends "base.html" %} {% block title %}Sodeom API: /mcp (MCP server){%
+endblock %} {% block content %}
+<div class="content-card">
+  <h1 class="page-title">/mcp (MCP server for agents)</h1>
+  <nav class="api-doc-nav" aria-label="API documentation">
+    <a href="/apis">Overview</a>
+    <a href="/apis/root">/</a>
+    <a href="/apis/search">/api/search</a>
+    <a href="/apis/images">/images</a>
+    <a href="/apis/placeholder">/placeholder</a>
+    <a href="/apis/ai">/ai</a>
+    <a href="/apis/wiki">/wiki</a>
+    <a href="/apis/mcp">/mcp</a>
+    <a href="/apis/routes">Routes</a>
+  </nav>
+  <p class="page-subtitle">
+    A public, keyless <strong>Model Context Protocol</strong> server. Any MCP
+    client (Claude, OpenCode, LangChain, custom agents) can search the web
+    through Sodeom — no API key, no signup.
+  </p>
+
+  <section>
+    <h2>Endpoint</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Method</th>
+          <th>Path</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>POST</code></td>
+          <td><code>/mcp</code></td>
+          <td>
+            Send one JSON-RPC 2.0 message (or a batch). Returns the response as
+            <code>application/json</code>, or <code>202</code> for
+            notifications.
+          </td>
+        </tr>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>/mcp</code></td>
+          <td>
+            <code>405</code> — this server never pushes messages, which the
+            spec explicitly allows.
+          </td>
+        </tr>
+        <tr>
+          <td><code>DELETE</code></td>
+          <td><code>/mcp</code></td>
+          <td>
+            Ends a session. Requires the <code>Mcp-Session-Id</code> header
+            (sessions are optional).
+          </td>
+        </tr>
+        <tr>
+          <td><code>GET</code></td>
+          <td><code>/.well-known/mcp.json</code></td>
+          <td>Discovery descriptor pointing at the endpoint.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      Transport: <strong>Streamable HTTP</strong> (MCP
+      <code>2025-06-18</code>, also accepts <code>2025-03-26</code> and
+      <code>2024-11-05</code>). Base URL for clients:
+      <code>https://sodeom.com/mcp</code>
+    </p>
+  </section>
+
+  <section>
+    <h2>Client setup</h2>
+
+    <h3>Claude Code</h3>
+    <pre>claude mcp add --transport http sodeom https://sodeom.com/mcp</pre>
+
+    <h3>Claude Desktop / any stdio client (via mcp-remote)</h3>
+    <pre>{
+  "mcpServers": {
+    "sodeom": {
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "https://sodeom.com/mcp"]
+    }
+  }
+}</pre>
+
+    <h3>OpenCode</h3>
+    <pre>{
+  "mcp": {
+    "servers": {
+      "sodeom": { "type": "remote", "url": "https://sodeom.com/mcp" }
+    }
+  }
+}</pre>
+
+    <h3>Python (<code>mcp</code> SDK)</h3>
+    <pre>from mcp import ClientSession
+from mcp.client.streamable_http import streamable_http_client   # mcp &gt;= 2
+
+# mcp 1.x: from mcp.client.streamable_http import streamablehttp_client
+#          and unpack as (read, write, _)
+
+async with streamable_http_client("https://sodeom.com/mcp") as (read, write):
+    async with ClientSession(read, write) as s:
+        await s.initialize()
+        print(await s.list_tools())
+        out = await s.call_tool("search", {"query": "Flask SSE streaming"})
+        print(out.content[0].text)</pre>
+  </section>
+
+  <section>
+    <h2>Tools</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Arguments</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>search</code></td>
+          <td>
+            <code>query</code> (required), <code>page</code>,
+            <code>language</code>
+          </td>
+          <td>
+            Web search (SearXNG + Bing/Brave fallbacks). Numbered title / URL /
+            snippet lines, plus answers and spelling suggestions.
+          </td>
+        </tr>
+        <tr>
+          <td><code>search_news</code></td>
+          <td><code>query</code> (required), <code>page</code>, <code>language</code></td>
+          <td>Recent news articles.</td>
+        </tr>
+        <tr>
+          <td><code>search_videos</code></td>
+          <td><code>query</code> (required), <code>page</code>, <code>language</code></td>
+          <td>Video results (mostly YouTube).</td>
+        </tr>
+        <tr>
+          <td><code>search_images</code></td>
+          <td><code>query</code> (required), <code>page</code>, <code>language</code></td>
+          <td>Images with direct <code>img_src</code> URLs.</td>
+        </tr>
+        <tr>
+          <td><code>wiki</code></td>
+          <td><code>query</code> (required), <code>language</code></td>
+          <td>Wikipedia / Wikidata infobox, answer and reference links.</td>
+        </tr>
+        <tr>
+          <td><code>fetch_url</code></td>
+          <td><code>url</code> (required), <code>max_chars</code></td>
+          <td>
+            Reads a public page and returns its text (scripts stripped,
+            8000 chars default). Private/internal addresses are refused.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Protocol flow</h2>
+    <pre>→ {"jsonrpc":"2.0","id":1,"method":"initialize",
+   "params":{"protocolVersion":"2025-06-18","capabilities":{},
+             "clientInfo":{"name":"my-agent","version":"1.0"}}}
+← {"jsonrpc":"2.0","id":1,"result":{
+     "protocolVersion":"2025-06-18",
+     "capabilities":{"tools":{"listChanged":false}},
+     "serverInfo":{"name":"sodeom","title":"Sodeom Search","version":"1.0.0"},
+     "instructions":"..."}}
+
+→ {"jsonrpc":"2.0","method":"notifications/initialized"}      → 202
+→ {"jsonrpc":"2.0","id":2,"method":"tools/list"}              → tool schemas
+→ {"jsonrpc":"2.0","id":3,"method":"tools/call",
+   "params":{"name":"search","arguments":{"query":"python 3.14"}}}
+← {"jsonrpc":"2.0","id":3,"result":{
+     "content":[{"type":"text","text":"1. Python ..."}],
+     "isError":false}}</pre>
+  </section>
+
+  <section>
+    <h2>Raw curl example</h2>
+    <pre>curl -s https://sodeom.com/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/call",
+       "params":{"name":"search","arguments":{"query":"Flask"}}}'</pre>
+  </section>
+
+  <section>
+    <h2>Notes</h2>
+    <ul>
+      <li>
+        <strong>No API key</strong> — the endpoint is public and read-only.
+      </li>
+      <li>
+        The <code>Mcp-Session-Id</code> header is issued on
+        <code>initialize</code> but never required, so stateless clients work.
+      </li>
+      <li>
+        Tool output is plain text capped at 12 000 characters to keep agent
+        context small.
+      </li>
+      <li>
+        <code>fetch_url</code> refuses private, loopback and link-local
+        addresses.
+      </li>
+      <li>
+        Search answers come from the same backend as
+        <a href="/apis/search">/api/search</a> — no tracking, no logging of
+        your queries beyond transient caching.
+      </li>
+    </ul>
+  </section>
+</div>
+{% endblock %}
